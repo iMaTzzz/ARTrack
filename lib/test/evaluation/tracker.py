@@ -202,11 +202,11 @@ class Tracker:
         if success is not True:
             print("Read frame from {} failed.".format(input_video))
             exit(-1)
-        if optional_box is not None:
-            assert isinstance(optional_box, (list, tuple))
-            assert len(optional_box) == 4, "valid box's foramt is [x,y,w,h]"
-            tracker.initialize(frame, _build_init_info(optional_box))
-            output_boxes.append(optional_box)
+        if bbox_path is not None:
+            assert isinstance(bbox_path, (list, tuple))
+            assert len(bbox_path) == 4, "valid box's foramt is [x,y,w,h]"
+            tracker.initialize(frame, _build_init_info(bbox_path))
+            output_boxes.append(bbox_path)
         else:
             while True:
                 # cv.waitKey()
@@ -236,6 +236,9 @@ class Tracker:
             out = tracker.track(frame)
             state = [int(s) for s in out['target_bbox']]
             output_boxes.append(state)
+            inference_time = out['time']
+            total_time += inference_time
+            print(f"Inference time for frame {frame_number}/{total_frames}: {inference_time:.4f} seconds")
 
             cv.rectangle(frame_disp, (state[0], state[1]), (state[2] + state[0], state[3] + state[1]),
                          (0, 255, 0), 5)
@@ -268,6 +271,8 @@ class Tracker:
             # Save frame with predictions
             if output_video is not None:
                 output.write(frame_disp)
+        print(f"Total time taken: {total_time:.2f} seconds")
+        print(f"Overall FPS: {total_frames / total_time:.2f}")
 
         # When everything done, release the capture
         cap.release()
