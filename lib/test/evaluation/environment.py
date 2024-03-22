@@ -4,6 +4,7 @@ import os
 
 class EnvSettings:
     def __init__(self):
+        print(test_path)
         test_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
         self.results_path = '{}/tracking_results/'.format(test_path)
