@@ -33,13 +33,11 @@ class Tracker:
         display_name: Name to be displayed in the result plots.
     """
 
-    def __init__(self, name: str, parameter_name: str, dataset_name: str, run_id: int = None, display_name: str = None,
-                 result_only=False):
+    def __init__(self, name: str, parameter_name: str, run_id: int = None, display_name: str = None):
         assert run_id is None or isinstance(run_id, int)
 
         self.name = name
         self.parameter_name = parameter_name
-        self.dataset_name = dataset_name
         self.run_id = run_id
         self.display_name = display_name
 
@@ -48,8 +46,6 @@ class Tracker:
             self.results_dir = '{}/{}/{}'.format(env.results_path, self.name, self.parameter_name)
         else:
             self.results_dir = '{}/{}/{}_{:03d}'.format(env.results_path, self.name, self.parameter_name, self.run_id)
-        if result_only:
-            self.results_dir = '{}/{}'.format(env.results_path, self.name)
 
         tracker_module_abspath = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                               '..', 'tracker', '%s.py' % self.name))
@@ -60,7 +56,7 @@ class Tracker:
             self.tracker_class = None
 
     def create_tracker(self, params):
-        tracker = self.tracker_class(params, self.dataset_name)
+        tracker = self.tracker_class(params)
         return tracker
 
     def run_sequence(self, seq, debug=None):
@@ -151,8 +147,8 @@ class Tracker:
 
         return output
 
-    def run_video(self, videofilepath, optional_box=None, debug=None, visdom_info=None, save_results=False):
-        """Run the tracker with the vieofile.
+    def run_video(self, input_video, output_video, optional_box=None, debug=None, visdom_info=None, save_results=False):
+        """Run the tracker with the videofile.
         args:
             debug: Debug level.
         """
@@ -178,12 +174,22 @@ class Tracker:
         else:
             raise ValueError('Unknown multi object mode {}'.format(multiobj_mode))
 
-        assert os.path.isfile(videofilepath), "Invalid param {}".format(videofilepath)
-        ", videofilepath must be a valid videofile"
+        assert os.path.isfile(input_video), "Invalid param {}".format(input_video)
+        ", input_video must be a valid videofile"
 
         output_boxes = []
 
-        cap = cv.VideoCapture(videofilepath)
+        cap = cv.VideoCapture(input_video)
+        # Get video properties
+        fps = cap.get(cv.CAP_PROP_FPS)
+        width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+        total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+        # Start writing video output
+        if output_video is not None:
+            fourcc = cv.VideoWriter_fourcc(*'mp4v')  # Codec for the output video
+            output = cv.VideoWriter(output_video, fourcc, fps, (width, height))
+
         display_name = 'Display: ' + tracker.params.tracker_name
         cv.namedWindow(display_name, cv.WINDOW_NORMAL | cv.WINDOW_KEEPRATIO)
         cv.resizeWindow(display_name, 960, 720)
@@ -194,7 +200,7 @@ class Tracker:
             return {'init_bbox': box}
 
         if success is not True:
-            print("Read frame from {} failed.".format(videofilepath))
+            print("Read frame from {} failed.".format(input_video))
             exit(-1)
         if optional_box is not None:
             assert isinstance(optional_box, (list, tuple))
@@ -214,13 +220,16 @@ class Tracker:
                 tracker.initialize(frame, _build_init_info(init_state))
                 output_boxes.append(init_state)
                 break
+            if output_video is not None:
+                output.write(frame_disp)
 
+        frame_number = 1
+        total_time = 0
         while True:
             ret, frame = cap.read()
-
             if frame is None:
                 break
-
+            frame_number += 1
             frame_disp = frame.copy()
 
             # Draw box
@@ -231,31 +240,34 @@ class Tracker:
             cv.rectangle(frame_disp, (state[0], state[1]), (state[2] + state[0], state[3] + state[1]),
                          (0, 255, 0), 5)
 
-            font_color = (0, 0, 0)
-            cv.putText(frame_disp, 'Tracking!', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       font_color, 1)
-            cv.putText(frame_disp, 'Press r to reset', (20, 55), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       font_color, 1)
-            cv.putText(frame_disp, 'Press q to quit', (20, 80), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       font_color, 1)
+            # font_color = (0, 0, 0)
+            # cv.putText(frame_disp, 'Tracking!', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
+                       # font_color, 1)
+            # cv.putText(frame_disp, 'Press r to reset', (20, 55), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
+                       # font_color, 1)
+            # cv.putText(frame_disp, 'Press q to quit', (20, 80), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
+                       # font_color, 1)
 
-            # Display the resulting frame
-            cv.imshow(display_name, frame_disp)
-            key = cv.waitKey(1)
-            if key == ord('q'):
-                break
-            elif key == ord('r'):
-                ret, frame = cap.read()
-                frame_disp = frame.copy()
+            # # Display the resulting frame
+            # cv.imshow(display_name, frame_disp)
+            # key = cv.waitKey(1)
+            # if key == ord('q'):
+                # break
+            # elif key == ord('r'):
+                # ret, frame = cap.read()
+                # frame_disp = frame.copy()
 
-                cv.putText(frame_disp, 'Select target ROI and press ENTER', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.5,
-                           (0, 0, 0), 1)
+                # cv.putText(frame_disp, 'Select target ROI and press ENTER', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.5,
+                           # (0, 0, 0), 1)
 
-                cv.imshow(display_name, frame_disp)
-                x, y, w, h = cv.selectROI(display_name, frame_disp, fromCenter=False)
-                init_state = [x, y, w, h]
-                tracker.initialize(frame, _build_init_info(init_state))
-                output_boxes.append(init_state)
+                # cv.imshow(display_name, frame_disp)
+                # x, y, w, h = cv.selectROI(display_name, frame_disp, fromCenter=False)
+                # init_state = [x, y, w, h]
+                # tracker.initialize(frame, _build_init_info(init_state))
+                # output_boxes.append(init_state)
+            # Save frame with predictions
+            if output_video is not None:
+                output.write(frame_disp)
 
         # When everything done, release the capture
         cap.release()
@@ -264,7 +276,7 @@ class Tracker:
         if save_results:
             if not os.path.exists(self.results_dir):
                 os.makedirs(self.results_dir)
-            video_name = Path(videofilepath).stem
+            video_name = Path(input_video).stem
             base_results_path = os.path.join(self.results_dir, 'video_{}'.format(video_name))
 
             tracked_bb = np.array(output_boxes).astype(int)

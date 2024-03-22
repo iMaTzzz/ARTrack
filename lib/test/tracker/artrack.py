@@ -15,6 +15,7 @@ from lib.test.tracker.data_utils import Preprocessor
 from lib.utils.box_ops import clip_box
 from lib.utils.ce_utils import generate_mask_cond
 import random
+import time
 
 class RandomErasing(object):
     def __init__(self, EPSILON=0.5, sl=0.02, sh=0.33, r1=0.3, mean=[0.4914, 0.4822, 0.4465]):
@@ -59,7 +60,7 @@ class RandomErasing(object):
 
 
 class ARTrack(BaseTracker):
-    def __init__(self, params, dataset_name):
+    def __init__(self, params):
         super(ARTrack, self).__init__(params)
         network = build_artrack(params.cfg, training=False)
         print(self.params.checkpoint)
@@ -118,6 +119,8 @@ class ARTrack(BaseTracker):
             return {"all_boxes": all_boxes_save}
 
     def track(self, image, info: dict = None):
+        # Time initialization
+        tic = time.time()
         magic_num = (self.range - 1) * 0.5
         H, W, _ = image.shape
         self.frame_id += 1
@@ -181,15 +184,19 @@ class ARTrack(BaseTracker):
                     if self.step:
                         self.step = False
                         break
-
+        out = dict()
         if self.save_all_boxes:
             '''save all predictions'''
             all_boxes = self.map_box_back_batch(pred_boxes * self.params.search_size / resize_factor, resize_factor)
             all_boxes_save = all_boxes.view(-1).tolist()  # (4N, )
-            return {"target_bbox": self.state,
-                    "all_boxes": all_boxes_save}
+            out["target_bbox"] = self.state
+            out["all_boxes"] = all_boxes_save
         else:
-            return {"target_bbox": self.state}
+            out["target_bbox"] = self.state
+
+        # Record time taken per inference
+        out['time'] = time.time() - tic
+        return out
 
     def map_box_back(self, pred_box: list, resize_factor: float):
         cx_prev, cy_prev = self.state[0] + 0.5 * self.state[2], self.state[1] + 0.5 * self.state[3]
