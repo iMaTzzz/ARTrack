@@ -17,7 +17,7 @@ from lib.utils.ce_utils import generate_mask_cond
 
 
 class ARTrackSeq(BaseTracker):
-    def __init__(self, params, dataset_name):
+    def __init__(self, params):
         super(ARTrackSeq, self).__init__(params)
         network = build_artrack_seq(params.cfg, training=False)
         print(self.params.checkpoint)
