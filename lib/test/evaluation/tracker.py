@@ -346,12 +346,9 @@ class Tracker:
         with torch.no_grad():
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             print(f"{device=}")
-            template = out['template']
-            search = out['search']
-            seq_input = out['seq_input']
-            template = template.to(device=device)
-            search = search.to(device=device)
-            seq_input = seq_input.to(device=device)
+            template = out['template'].to(device)
+            search = out['search'].to(device)
+            seq_input = out['seq_input'].to(device)
             dummy_input = (template, search, seq_input)
             print(f"{template=}, {template.shape}")
             print(f"{search=}, {search.shape}")
