@@ -348,7 +348,7 @@ class Tracker:
         seq_input = torch.randn([1, 28])
         dummy_input = (template.cuda(), search.cuda(), seq_input.cuda())
         for val in dummy_input:
-            print(f"{val.shape}")
+            print(f"{val=}, {val.shape}")
         onnx_path = "tracking.onnx"
         input_names = ['template', 'search', 'seq_input']
         output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
