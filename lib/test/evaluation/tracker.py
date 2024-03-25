@@ -346,13 +346,14 @@ class Tracker:
         with torch.no_grad():
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             print(f"{device=}")
-            template = torch.randn([1, 3, 128, 128], device=device)
-            search = torch.randn([1, 3, 256, 256], device=device)
-            seq_input = torch.randn([1, 28], device=device)
-            # dummy_input = (template, search, seq_input)
-            dummy_input = (out['template'], out['search'], out['seq_input'].cuda())
-            for val in dummy_input:
-                print(f"{val=}, {val.shape}")
+            template = out['template']
+            search = out['search']
+            seq_input = out['seq_input']
+            dummy_input = (template, search, seq_input)
+            print(f"{template=}, {template.shape}")
+            print(f"{search=}, {search.shape}")
+            print(f"{seq_input=}, {seq_input.shape}")
+            print("f"{dummy_input=}")
             onnx_path = "tracking.onnx"
             input_names = ['template', 'search', 'seq_input']
             output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
