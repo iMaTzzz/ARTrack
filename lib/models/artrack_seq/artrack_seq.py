@@ -38,6 +38,7 @@ class ARTrackSeq(nn.Module):
                 seq_input=None,
                 stage="sequence",
                 ):
+        print('backbone')
         x, aux_dict = self.backbone(z=template, x=search, identity=self.identity)
 
         # Forward head
@@ -47,10 +48,13 @@ class ARTrackSeq(nn.Module):
             
         pos_z = self.backbone.pos_embed_z
         pos_x = self.backbone.pos_embed_x
+        print('head')
         out = self.forward_head(feat_last, pos_z, pos_x, self.identity, seq_input, stage)
 
+        print('update')
         out.update(aux_dict)
         out['backbone_feat'] = x
+        print('return')
         return out
 
     def forward_head(self, cat_feature, pos_z, pos_x, identity, seq_input=None, stage=None):
