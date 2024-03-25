@@ -112,6 +112,7 @@ class ARTrackSeq(BaseTracker):
                 template=self.z_dict1.tensors, search=x_dict.tensors,
                 seq_input=seqs_out, stage="sequence", search_feature=self.x_feat, update=None)
 
+        print(out_dict)
         self.x_feat = out_dict['x_feat']
 
         pred_boxes = out_dict['seqs'][:, 0:4] / (self.bins - 1) - 0.5
