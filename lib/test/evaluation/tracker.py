@@ -353,7 +353,7 @@ class Tracker:
             print(f"{template=}, {template.shape}")
             print(f"{search=}, {search.shape}")
             print(f"{seq_input=}, {seq_input.shape}")
-            print("f"{dummy_input=}")
+            print(f"{dummy_input=}")
             onnx_path = "tracking.onnx"
             input_names = ['template', 'search', 'seq_input']
             output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
