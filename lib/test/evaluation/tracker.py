@@ -345,7 +345,8 @@ class Tracker:
 
 
         with torch.no_grad():
-            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            device = 'cpu'
             print(f"{device=}")
             template = out['template'].to(device)
             search = out['search'].to(device)

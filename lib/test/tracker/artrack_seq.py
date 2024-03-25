@@ -25,7 +25,8 @@ class ARTrackSeq(BaseTracker):
         network.load_state_dict(torch.load(self.params.checkpoint, map_location='cpu')['net'], strict=True)
         self.cfg = params.cfg
         self.bins = self.cfg.MODEL.BINS
-        self.network = network.cuda()
+        # self.network = network.cuda()
+        self.network = network
         self.network.eval()
         self.preprocessor = Preprocessor()
         self.state = None
