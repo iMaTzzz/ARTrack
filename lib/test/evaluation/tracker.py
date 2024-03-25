@@ -349,6 +349,9 @@ class Tracker:
             template = out['template']
             search = out['search']
             seq_input = out['seq_input']
+            template = template.to(device=device)
+            search = search.to(device=device)
+            seq_input = seq_input.to(device=device)
             dummy_input = (template, search, seq_input)
             print(f"{template=}, {template.shape}")
             print(f"{search=}, {search.shape}")
