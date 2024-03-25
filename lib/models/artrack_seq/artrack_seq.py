@@ -39,6 +39,9 @@ class ARTrackSeq(nn.Module):
                 stage="sequence",
                 ):
         print('backbone')
+        print(f"{template=}")
+        print(f"{search=}")
+        print(f"{self.identity=}")
         x, aux_dict = self.backbone(z=template, x=search, identity=self.identity)
 
         # Forward head
