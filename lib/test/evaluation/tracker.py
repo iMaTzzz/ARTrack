@@ -348,9 +348,9 @@ class Tracker:
             # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             device = 'cpu'
             print(f"{device=}")
-            template = out['template'].to(device)
-            search = out['search'].to(device)
-            seq_input = out['seq_input'].to(device)
+            template = out['template'].to(device).type(torch.FloatTensor)
+            search = out['search'].to(device).type(torch.FloatTensor)
+            seq_input = out['seq_input'].to(device).type(torch.FloatTensor)
             dummy_input = (template, search, seq_input)
             print(f"{template=}, {template.shape}")
             print(f"{search=}, {search.shape}")
