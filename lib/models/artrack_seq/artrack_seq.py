@@ -41,6 +41,10 @@ class ARTrackSeq(nn.Module):
                 search_feature=None,
                 update=None
                 ):
+        print(f"{template=}, {template.shape}")
+        print(f"{search=}, {search.shape}")
+        print(f"{seq_input=}, {seq_input.shape}")
+        print(f"{stage=}")
         x, aux_dict = self.backbone(z=template, x=search, identity=self.identity)
 
         # Forward head
