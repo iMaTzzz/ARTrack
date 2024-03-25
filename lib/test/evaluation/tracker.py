@@ -347,8 +347,9 @@ class Tracker:
         search = torch.randn([1, 3, 256, 256])
         seq_input = torch.randn([1, 28])
         dummy_input = (template.cuda(), search.cuda(), seq_input.cuda())
+        for val in dummy_input:
+            print(f"{val.shape}")
         onnx_path = "tracking.onnx"
         input_names = ['template', 'search', 'seq_input']
         output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
-        dynamic_axes = {}
-        torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names, dynamic_axes=dynamic_axes)
+        torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names)
