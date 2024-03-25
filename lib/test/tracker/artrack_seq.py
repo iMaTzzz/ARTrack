@@ -104,10 +104,14 @@ class ARTrackSeq(BaseTracker):
                 seqs_out = torch.cat((seqs_out, box_out_i), dim=-1)
         seqs_out = seqs_out.unsqueeze(0)
         search = self.preprocessor.process(x_patch_arr, x_amask_arr)
+        out = dict()
         with torch.no_grad():
             x_dict = search
             # merge the template and the search
             # run the transformer
+            out['template'] = self.z_dict1.tensors
+            out['search'] = self.x_dict.tensors
+            out['seq_input'] = seqs_out
             out_dict = self.network.forward(
                 template=self.z_dict1.tensors, search=x_dict.tensors,
                 seq_input=seqs_out, stage="sequence", search_feature=self.x_feat, update=None)
@@ -164,7 +168,7 @@ class ARTrackSeq(BaseTracker):
                     if self.step:
                         self.step = False
                         break
-        out = dict()
+        # out = dict()
 
         if self.save_all_boxes:
             '''save all predictions'''

@@ -348,7 +348,8 @@ class Tracker:
             template = torch.randn([1, 3, 128, 128], device=device)
             search = torch.randn([1, 3, 256, 256], device=device)
             seq_input = torch.randn([1, 28], device=device)
-            dummy_input = (template, search, seq_input)
+            # dummy_input = (template, search, seq_input)
+            dummy_input = (out['template'], out['search'], out['seq_input'])
             for val in dummy_input:
                 print(f"{val=}, {val.shape}")
             onnx_path = "tracking.onnx"
