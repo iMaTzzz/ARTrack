@@ -333,7 +333,7 @@ class Tracker:
         tracker.initialize(frame, init_bbox)
 
         model = tracker.get_network()
-        print(f"{model=}")
+        # print(f"{model=}")
 
         # Get dummy input on the next frame by using track method
         ret, frame = cap.read()
@@ -349,6 +349,6 @@ class Tracker:
         dummy_input = (template, search, seq_input)
         onnx_path = "tracking.onnx"
         input_names = ['template', 'search', 'seq_input']
-        output_names = ['bbox_pred']
-        dynamic_axes = {'frame': {2: 'height', 3: 'width'}}
-        # torch.onnx.export(tracker, dummy_input, onnx_path, input_names, output_names, dynamic_axes)
+        output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
+        dynamic_axes = {}
+        torch.onnx.export(model, dummy_input, onnx_path, input_names, output_names, dynamic_axes)
