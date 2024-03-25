@@ -28,7 +28,7 @@ def export2onnx(tracker_name, tracker_param, input_video):
     tracker = Tracker(tracker_name, tracker_param)
 
     # beach.mp4
-    init_bbox = torch.tensor([790, 1440, 171, 387])
+    init_bbox = [790, 1440, 171, 387]
 
     tracker.export2onnx(input_video=input_video, init_bbox=init_bbox)
     # torch.onnx.dynamo_export(tracker)
