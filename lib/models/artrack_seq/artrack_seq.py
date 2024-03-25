@@ -37,7 +37,7 @@ class ARTrackSeq(nn.Module):
                 search: torch.Tensor,
                 seq_input=None,
                 head_type=None,
-                stage=None,
+                stage="Sequence",
                 search_feature=None,
                 update=None
                 ):
