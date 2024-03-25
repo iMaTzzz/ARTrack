@@ -328,24 +328,25 @@ class Tracker:
         total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
         success, frame = cap.read()
         frame_tensor = torch.from_numpy(frame).unsqueeze(0).permute(0, 3, 1, 2)
-        print(f"{frame=}")
-        print(f"{frame_tensor=}")
-        print(f"{frame_tensor.shape=}")
 
-        output_boxes = []
 
         init_bbox = {'init_bbox': init_bbox}
         tracker.initialize(frame, init_bbox)
-        output_boxes.append(init_bbox)
+
+        model = tracker.get_network()
+        print(f"{model=}")
+
+        # Get dummy input on the next frame by using track method
+        ret, frame = cap.read()
+        frame_disp = frame.copy()
 
         # Draw box
         out = tracker.track(frame)
         state = [int(s) for s in out['target_bbox']]
-        output_boxes.append(state)
 
         dummy_input = (frame, init_bbox)
         onnx_path = "tracking.onnx"
         input_names = ['frame', 'init_bbox']
         output_names = ['bbox_pred']
-        dynamic_axes = {'frame': {2: 'width', 3: 'height'}}
+        dynamic_axes = {'frame': {2: 'height', 3: 'width'}}
         # torch.onnx.export(tracker, input_shape, onnx_path, input_names, output_names, dynamic_axes)
