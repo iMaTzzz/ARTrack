@@ -80,10 +80,6 @@ class ARTrackSeq(BaseTracker):
             self.store_result.append(info['init_bbox'].copy())
         self.frame_id = 0
         self.update = None
-        if self.save_all_boxes:
-            '''save all predicted boxes'''
-            all_boxes_save = info['init_bbox'] * self.cfg.MODEL.NUM_OBJECT_QUERIES
-            return {"all_boxes": all_boxes_save}
 
     def track(self, image, info: dict = None):
         # Time initialization
@@ -210,6 +206,9 @@ class ARTrackSeq(BaseTracker):
             )
 
         self.enc_attn_weights = enc_attn_weights
+
+    def get_network(self):
+        return self.network
 
 
 def get_tracker_class():
