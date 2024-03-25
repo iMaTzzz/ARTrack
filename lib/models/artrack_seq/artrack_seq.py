@@ -36,15 +36,8 @@ class ARTrackSeq(nn.Module):
     def forward(self, template: torch.Tensor,
                 search: torch.Tensor,
                 seq_input=None,
-                head_type=None,
-                stage="Sequence",
-                search_feature=None,
-                update=None
+                stage="sequence",
                 ):
-        print(f"{template=}, {template.shape}")
-        print(f"{search=}, {search.shape}")
-        print(f"{seq_input=}, {seq_input.shape}")
-        print(f"{stage=}")
         x, aux_dict = self.backbone(z=template, x=search, identity=self.identity)
 
         # Forward head
