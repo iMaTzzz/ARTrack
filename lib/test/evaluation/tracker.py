@@ -363,10 +363,6 @@ class Tracker:
             print('\n Exporting................... \n')
             torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names, opset_version=11)
 
-        ort_session = onnxruntime.InferenceSession(onnx_path)
-        ort_inputs = {'template': template, 'search': search, 'seq_input': seq_input}
-        ort_ouputs = ort_session.run(None, ort_inputs)
-        print(f"{ort_ouputs=}")
     def run_onnx(self, input_video, init_bbox, input_onnx):
         """Run the tracker with the videofile.
         args:
