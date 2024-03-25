@@ -23,27 +23,14 @@ def export2onnx(tracker_name, tracker_param, input_video):
         save_results: Bool if we want to save the predictions
     """
     print(f"{tracker_name=}, {tracker_param=}, {input_video=}")
-    cap = cv.VideoCapture(input_video)
-    # Get video properties
-    fps = cap.get(cv.CAP_PROP_FPS)
-    width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
-    total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
-    success, frame = cap.read()
-    frame_tensor = torch.from_numpy(frame)
-    print(f"{frame=}, {frame_tensor=}")
+
+    # Initializing tracker
+    tracker = Tracker(tracker_name, tracker_param)
+
     # beach.mp4
     init_bbox = torch.tensor([790, 1440, 171, 387])
-    tracker = Tracker(tracker_name, tracker_param)
+
     tracker.export2onnx(input_video=input_video, init_bbox=init_bbox)
-
-    input_shape = (1, 3, width, height)
-    onnx_path = "tracking.onnx"
-    input_names = ['input']
-    output_names = ['bbox_pred']
-    dynamic_axes = {'input': {2: 'width', 3: 'height'}}
-    # torch.onnx.export(tracker, input_shape, onnx_path, input_names, output_names, dynamic_axes)
-
     # torch.onnx.dynamo_export(tracker)
 
 def main():
