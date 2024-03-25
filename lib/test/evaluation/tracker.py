@@ -343,6 +343,7 @@ class Tracker:
         out = tracker.track(frame)
         state = [int(s) for s in out['target_bbox']]
 
+
         with torch.no_grad():
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             print(f"{device=}")
@@ -357,4 +358,5 @@ class Tracker:
             onnx_path = "tracking.onnx"
             input_names = ['template', 'search', 'seq_input']
             output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
+            print('\n Exporting................... \n')
             torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, opset_version=11)
