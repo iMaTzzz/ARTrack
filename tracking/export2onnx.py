@@ -30,6 +30,7 @@ def export2onnx(tracker_name, tracker_param, input_video):
     height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
     success, frame = cap.read()
+    print(f"frame{frame=}")
     # beach.mp4
     init_bbox = torch.tensor([790, 1440, 171, 387])
     tracker = Tracker(tracker_name, tracker_param)
@@ -40,7 +41,6 @@ def export2onnx(tracker_name, tracker_param, input_video):
     input_names = ['input']
     output_names = ['bbox_pred']
     dynamic_axes = {'input': {2: 'width', 3: 'height'}}
-    print(f"frame{frame=}")
     # torch.onnx.export(tracker, input_shape, onnx_path, input_names, output_names, dynamic_axes)
 
     # torch.onnx.dynamo_export(tracker)
