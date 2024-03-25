@@ -33,7 +33,8 @@ class ARTrackSeq(BaseTracker):
 
         self.feat_sz = self.cfg.TEST.SEARCH_SIZE // self.cfg.MODEL.BACKBONE.STRIDE
         # motion constrain
-        self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True).cuda()
+        # self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True).cuda()
+        self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True)
 
         # for debug
         self.debug = params.debug
