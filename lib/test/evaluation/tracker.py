@@ -355,4 +355,4 @@ class Tracker:
             onnx_path = "tracking.onnx"
             input_names = ['template', 'search', 'seq_input']
             output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
-            torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names, opset_version=11)
+            torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, opset_version=11)
