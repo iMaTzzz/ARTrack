@@ -359,9 +359,9 @@ class Tracker:
             print(f"{dummy_input=}")
             onnx_path = "tracking.onnx"
             input_names = ['template', 'search', 'seq_input']
-            output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
+            output_names = ['seqs', 'class', 'feat', 'x_feat', 'backbone_feat']
             print('\n Exporting................... \n')
-            torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, opset_version=11)
+            torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names, opset_version=11)
 
         ort_session = onnxruntime.InferenceSession(onnx_path)
         ort_inputs = {'template': template, 'search': search, 'seq_input': seq_input}
