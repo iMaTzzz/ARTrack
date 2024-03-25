@@ -410,15 +410,8 @@ class Tracker:
         template = out['template'].to(device).type(torch.FloatTensor)
         search = out['search'].to(device).type(torch.FloatTensor)
         seq_input = out['seq_input'].to(device).type(torch.FloatTensor)
-        dummy_input = (template, search, seq_input)
-        print(f"{template=}, {template.shape}")
-        print(f"{search=}, {search.shape}")
-        print(f"{seq_input=}, {seq_input.shape}")
-        print(f"{dummy_input=}")
-        onnx_path = "tracking.onnx"
-        input_names = ['template', 'search', 'seq_input']
 
-        ort_session = onnxruntime.InferenceSession(onnx_path)
+        ort_session = onnxruntime.InferenceSession(input_onnx)
         ort_inputs = {'template': template, 'search': search, 'seq_input': seq_input}
         ort_ouputs = ort_session.run(None, ort_inputs)
         print(f"{ort_ouputs=}")
