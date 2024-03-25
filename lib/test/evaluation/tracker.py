@@ -327,7 +327,7 @@ class Tracker:
         height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
         total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
         success, frame = cap.read()
-        frame_tensor = torch.from_numpy(frame).unsqueeze(0).permute(0, 3, 2, 1)
+        frame_tensor = torch.from_numpy(frame).unsqueeze(0).permute(0, 3, 1, 2)
         print(f"{frame=}")
         print(f"{frame_tensor=}")
         print(f"{frame_tensor.shape=}")
