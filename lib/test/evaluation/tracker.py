@@ -346,7 +346,7 @@ class Tracker:
         template = torch.randn([1, 3, 128, 128])
         search = torch.randn([1, 3, 256, 256])
         seq_input = torch.randn([1, 28])
-        dummy_input = (template, search, seq_input)
+        dummy_input = (template.cuda(), search.cuda(), seq_input.cuda())
         onnx_path = "tracking.onnx"
         input_names = ['template', 'search', 'seq_input']
         output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
