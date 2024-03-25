@@ -327,7 +327,6 @@ class Tracker:
         height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
         total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
         success, frame = cap.read()
-        frame_tensor = torch.from_numpy(frame).unsqueeze(0).permute(0, 3, 1, 2)
 
 
         init_bbox = {'init_bbox': init_bbox}
@@ -344,9 +343,12 @@ class Tracker:
         out = tracker.track(frame)
         state = [int(s) for s in out['target_bbox']]
 
-        dummy_input = (frame, init_bbox)
+        template = torch.randn([1, 3, 128, 128])
+        search = torch.randn([1, 3, 256, 256])
+        seq_input = torch.randn([1, 28])
+        dummy_input = (template, search, seq_input)
         onnx_path = "tracking.onnx"
-        input_names = ['frame', 'init_bbox']
+        input_names = ['template', 'search', 'seq_input']
         output_names = ['bbox_pred']
         dynamic_axes = {'frame': {2: 'height', 3: 'width'}}
-        # torch.onnx.export(tracker, input_shape, onnx_path, input_names, output_names, dynamic_axes)
+        # torch.onnx.export(tracker, dummy_input, onnx_path, input_names, output_names, dynamic_axes)
