@@ -115,7 +115,7 @@ class ARTrackSeq(BaseTracker):
             out_dict = self.network.forward(
                 template=self.z_dict1.tensors, search=x_dict.tensors,
                 seq_input=seqs_out, stage="sequence", search_feature=self.x_feat, update=None)
-            print(out_dict)
+            print(f"{out_dict=}")
 
         self.x_feat = out_dict['x_feat']
 
