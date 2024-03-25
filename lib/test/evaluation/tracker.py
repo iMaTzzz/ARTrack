@@ -345,6 +345,7 @@ class Tracker:
 
         with torch.no_grad():
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            print(f"{device=}")
             template = torch.randn([1, 3, 128, 128], device=device)
             search = torch.randn([1, 3, 256, 256], device=device)
             seq_input = torch.randn([1, 28], device=device)
