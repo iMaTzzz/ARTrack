@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import onnxruntime
+import onnx
 
 
 def trackerlist(name: str, parameter_name: str, dataset_name: str, run_ids = None, display_name: str = None,
@@ -400,6 +401,12 @@ class Tracker:
         out = tracker.track(frame)
         state = [int(s) for s in out['target_bbox']]
         
+        # Check the model
+
+        onnx_model = onnx.load(input_onnx)
+        onnx.checker.check_model(onnx_model)
+        print('Model :\n\n{}'.format(onnx.helper.printable_graph(onnx_model.graph)))
+
         # Run the model through onnx runtime
         device = 'cpu'
         print(f"{device=}")
