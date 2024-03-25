@@ -3,6 +3,7 @@ import sys
 import argparse
 import cv2 as cv
 import torch
+import torchvision.transforms as transforms
 
 prj_path = os.path.join(os.path.dirname(__file__), '..')
 if prj_path not in sys.path:
@@ -30,7 +31,9 @@ def export2onnx(tracker_name, tracker_param, input_video):
     height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
     success, frame = cap.read()
-    print(f"frame{frame=}")
+    transform = transforms.Compose([transforms.PILToTensor()])
+    frame_tensor = transform(frame)
+    print(f"{frame=}, {frame_tensor=}")
     # beach.mp4
     init_bbox = torch.tensor([790, 1440, 171, 387])
     tracker = Tracker(tracker_name, tracker_param)
