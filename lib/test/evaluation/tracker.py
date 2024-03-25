@@ -9,6 +9,7 @@ from lib.utils.lmdb_utils import decode_img
 from pathlib import Path
 import numpy as np
 import torch
+import onnxruntime
 
 
 def trackerlist(name: str, parameter_name: str, dataset_name: str, run_ids = None, display_name: str = None,
@@ -361,3 +362,8 @@ class Tracker:
             output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
             print('\n Exporting................... \n')
             torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, opset_version=11)
+
+        ort_session = onnxruntime.InferenceSession(onnx_path)
+        ort_inputs = {'template': template, 'search': search, 'seq_input': seq_input}
+        ort_ouputs = ort_session.run(None, ort_inputs)
+        print(f"{ort_ouputs=}")
