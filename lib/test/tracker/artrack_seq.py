@@ -110,7 +110,7 @@ class ARTrackSeq(BaseTracker):
             # merge the template and the search
             # run the transformer
             out['template'] = self.z_dict1.tensors
-            out['search'] = self.x_dict.tensors
+            out['search'] = x_dict.tensors
             out['seq_input'] = seqs_out
             out_dict = self.network.forward(
                 template=self.z_dict1.tensors, search=x_dict.tensors,
