@@ -316,6 +316,7 @@ class Tracker:
         params.tracker_name = self.name
         params.param_name = self.parameter_name
         # self._init_visdom(visdom_info, debug_)
+        params.debug = getattr(params, 'debug', 0)
 
         tracker = self.create_tracker(params)
 
