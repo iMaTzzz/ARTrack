@@ -367,3 +367,58 @@ class Tracker:
         ort_inputs = {'template': template, 'search': search, 'seq_input': seq_input}
         ort_ouputs = ort_session.run(None, ort_inputs)
         print(f"{ort_ouputs=}")
+    def run_onnx(self, input_video, init_bbox, input_onnx):
+        """Run the tracker with the videofile.
+        args:
+            debug: Debug level.
+        """
+
+        params = self.get_parameters()
+
+        params.tracker_name = self.name
+        params.param_name = self.parameter_name
+        # self._init_visdom(visdom_info, debug_)
+        params.debug = getattr(params, 'debug', 0)
+
+        tracker = self.create_tracker(params)
+        cap = cv.VideoCapture(input_video)
+        # Get video properties
+        fps = cap.get(cv.CAP_PROP_FPS)
+        width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+        total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+        success, frame = cap.read()
+
+
+        init_bbox = {'init_bbox': init_bbox}
+        tracker.initialize(frame, init_bbox)
+
+        model = tracker.get_network()
+        # print(f"{model=}")
+
+        # Get dummy input on the next frame by using track method
+        ret, frame = cap.read()
+        frame_disp = frame.copy()
+
+        # Draw box
+        out = tracker.track(frame)
+        state = [int(s) for s in out['target_bbox']]
+        
+        # Run the model through onnx runtime
+        device = 'cpu'
+        print(f"{device=}")
+        template = out['template'].to(device).type(torch.FloatTensor)
+        search = out['search'].to(device).type(torch.FloatTensor)
+        seq_input = out['seq_input'].to(device).type(torch.FloatTensor)
+        dummy_input = (template, search, seq_input)
+        print(f"{template=}, {template.shape}")
+        print(f"{search=}, {search.shape}")
+        print(f"{seq_input=}, {seq_input.shape}")
+        print(f"{dummy_input=}")
+        onnx_path = "tracking.onnx"
+        input_names = ['template', 'search', 'seq_input']
+
+        ort_session = onnxruntime.InferenceSession(onnx_path)
+        ort_inputs = {'template': template, 'search': search, 'seq_input': seq_input}
+        ort_ouputs = ort_session.run(None, ort_inputs)
+        print(f"{ort_ouputs=}")
