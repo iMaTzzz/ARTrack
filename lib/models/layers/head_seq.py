@@ -924,7 +924,5 @@ def build_pix_head(cfg, hidden_dim):
                          stride=stride, encoder_layer=encoder_layer, decoder_layer=decoder_layer, bins=bins,
                          num_heads=num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, drop_rate=drop_rate,
                          attn_drop=attn_drop, drop_path=drop_path_allocator)
-    pix_head = pix_head.cuda()
-    pix_head.eval()
     return pix_head
 
