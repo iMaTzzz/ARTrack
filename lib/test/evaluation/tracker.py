@@ -343,15 +343,15 @@ class Tracker:
         out = tracker.track(frame)
         state = [int(s) for s in out['target_bbox']]
 
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        template = torch.randn([1, 3, 128, 128], device=device)
-        search = torch.randn([1, 3, 256, 256], device=device)
-        seq_input = torch.randn([1, 28], device=device)
-        dummy_input = (template, search, seq_input)
-        for val in dummy_input:
-            print(f"{val=}, {val.shape}")
-        onnx_path = "tracking.onnx"
-        input_names = ['template', 'search', 'seq_input']
-        output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
         with torch.no_grad():
+            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            template = torch.randn([1, 3, 128, 128], device=device)
+            search = torch.randn([1, 3, 256, 256], device=device)
+            seq_input = torch.randn([1, 28], device=device)
+            dummy_input = (template, search, seq_input)
+            for val in dummy_input:
+                print(f"{val=}, {val.shape}")
+            onnx_path = "tracking.onnx"
+            input_names = ['template', 'search', 'seq_input']
+            output_names = ['seqs', 'class', 'feat', 'state', 'x_feat', 'attn', 'backbone_feat']
             torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names)
