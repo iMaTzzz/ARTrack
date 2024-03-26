@@ -404,13 +404,6 @@ class Tracker:
         onnx.checker.check_model(onnx_model)
         # print('Model :\n\n{}'.format(onnx.helper.printable_graph(onnx_model.graph)))
 
-        # Run the model through onnx runtime
-        # device = 'cpu'
-        # print(f"{device=}")
-        # template = out['template'].to(device).type(torch.FloatTensor)
-        # search = out['search'].to(device).type(torch.FloatTensor)
-        # seq_input = out['seq_input'].to(device).type(torch.FloatTensor)
-
         ort_session = onnxruntime.InferenceSession(input_onnx)
         ort_inputs = {'template': template.cpu().numpy(), 'search': search.cpu().numpy(), 'seq_input': seq_input.cpu().numpy()}
         ort_ouputs = ort_session.run(None, ort_inputs)
