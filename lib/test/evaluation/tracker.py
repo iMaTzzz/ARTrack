@@ -319,41 +319,32 @@ class Tracker:
 
         params.tracker_name = self.name
         params.param_name = self.parameter_name
-        # self._init_visdom(visdom_info, debug_)
         params.debug = getattr(params, 'debug', 0)
 
+        # Create tracker
         tracker = self.create_tracker(params)
+
+        # Read video and get first frame
         cap = cv.VideoCapture(input_video)
-        # Get video properties
-        fps = cap.get(cv.CAP_PROP_FPS)
-        width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
-        height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
-        total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
         success, frame = cap.read()
 
-
+        # Initialize tracker
         init_bbox = {'init_bbox': init_bbox}
         tracker.initialize(frame, init_bbox)
 
+        # Get model we want to export
         model = tracker.get_network()
-        # print(f"{model=}")
 
         # Get dummy input on the next frame by using track method
         ret, frame = cap.read()
         frame_disp = frame.copy()
-
-        # Draw box
-        out = tracker.track(frame)
-        state = [int(s) for s in out['target_bbox']]
-
+        template, search, seq_input = tracker.preprocess_input(frame_disp)
 
         with torch.no_grad():
-            # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             device = 'cpu'
-            print(f"{device=}")
-            template = out['template'].to(device).type(torch.FloatTensor)
-            search = out['search'].to(device).type(torch.FloatTensor)
-            seq_input = out['seq_input'].to(device).type(torch.FloatTensor)
+            template = template.to(device).type(torch.float16)
+            search = template.to(device).type(torch.float16)
+            seq_input = template.to(device).type(torch.float16)
             dummy_input = (template, search, seq_input)
             print(f"{template=}, {template.shape}")
             print(f"{search=}, {search.shape}")
@@ -377,15 +368,17 @@ class Tracker:
 
         params.tracker_name = self.name
         params.param_name = self.parameter_name
-        # self._init_visdom(visdom_info, debug_)
         params.debug = getattr(params, 'debug', 0)
 
+        # Create two trackers for comparing results between pytorch model and onnx model
         tracker_test = self.create_tracker(params)
         tracker_onnx = self.create_tracker(params)
+
+        # Read video and get first frame
         cap = cv.VideoCapture(input_video)
-        # Reading the first frame
         success, frame = cap.read()
 
+        # Initialize trackers
         init_bbox = {'init_bbox': init_bbox}
         tracker_test.initialize(frame, init_bbox)
         tracker_onnx.initialize(frame, init_bbox)
