@@ -390,10 +390,14 @@ class Tracker:
 
         # Get the next frame
         ret, frame = cap.read()
-        frame_disp = frame.copy()
+        frame_copy = frame.copy()
+        frame_copy2 = frame.copy()
+
+        # Track the get the output result to compare
+        tracker.track(frame_copy)
 
         # Get pre-processed input
-        template, search, seq_input = tracker.preprocess_input(frame_disp)
+        template, search, seq_input = tracker.preprocess_input(frame_copy2)
         
         # Check the model
         onnx_model = onnx.load(input_onnx)
