@@ -11,6 +11,7 @@ import numpy as np
 import torch
 import onnxruntime
 import onnx
+from lib.train.data.processing_utils import sample_target, transform_image_to_crop
 
 
 def trackerlist(name: str, parameter_name: str, dataset_name: str, run_ids = None, display_name: str = None,
@@ -367,7 +368,9 @@ class Tracker:
     def run_onnx(self, input_video, init_bbox, input_onnx):
         """Run the tracker with the videofile.
         args:
-            debug: Debug level.
+            input_video
+            init_bbox
+            input_onnx
         """
 
         params = self.get_parameters()
@@ -379,43 +382,30 @@ class Tracker:
 
         tracker = self.create_tracker(params)
         cap = cv.VideoCapture(input_video)
-        # Get video properties
-        fps = cap.get(cv.CAP_PROP_FPS)
-        width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
-        height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
-        total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+        # Reading the first frame
         success, frame = cap.read()
-
 
         init_bbox = {'init_bbox': init_bbox}
         tracker.initialize(frame, init_bbox)
 
-        model = tracker.get_network()
-        # print(f"{model=}")
-
-        # Get dummy input on the next frame by using track method
+        # Get the next frame
         ret, frame = cap.read()
         frame_disp = frame.copy()
 
-        # Draw box
-        out = tracker.track(frame)
-        state = [int(s) for s in out['target_bbox']]
+        # Get pre-processed input
+        template, search, seq_input = tracker.preprocess_input(frame_disp)
         
         # Check the model
         onnx_model = onnx.load(input_onnx)
         onnx.checker.check_model(onnx_model)
-        print('Model :\n\n{}'.format(onnx.helper.printable_graph(onnx_model.graph)))
+        # print('Model :\n\n{}'.format(onnx.helper.printable_graph(onnx_model.graph)))
 
         # Run the model through onnx runtime
-        device = 'cpu'
-        print(f"{device=}")
-        template = out['template'].to(device).type(torch.FloatTensor)
-        search = out['search'].to(device).type(torch.FloatTensor)
-        seq_input = out['seq_input'].to(device).type(torch.FloatTensor)
-
-        template = torch.randn([1, 3, 128, 128])
-        search = torch.randn([1, 3, 256, 256])
-        seq_input = torch.randn([1, 28])
+        # device = 'cpu'
+        # print(f"{device=}")
+        # template = out['template'].to(device).type(torch.FloatTensor)
+        # search = out['search'].to(device).type(torch.FloatTensor)
+        # seq_input = out['seq_input'].to(device).type(torch.FloatTensor)
 
         ort_session = onnxruntime.InferenceSession(input_onnx)
         ort_inputs = {'template': template.cpu().numpy(), 'search': search.cpu().numpy(), 'seq_input': seq_input.cpu().numpy()}
