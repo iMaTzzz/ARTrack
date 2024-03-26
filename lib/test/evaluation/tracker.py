@@ -380,13 +380,15 @@ class Tracker:
         # self._init_visdom(visdom_info, debug_)
         params.debug = getattr(params, 'debug', 0)
 
-        tracker = self.create_tracker(params)
+        tracker_test = self.create_tracker(params)
+        tracker_onnx = self.create_tracker(params)
         cap = cv.VideoCapture(input_video)
         # Reading the first frame
         success, frame = cap.read()
 
         init_bbox = {'init_bbox': init_bbox}
-        tracker.initialize(frame, init_bbox)
+        tracker_test.initialize(frame, init_bbox)
+        tracker_onnx.initialize(frame, init_bbox)
 
         # Get the next frame
         ret, frame = cap.read()
@@ -394,10 +396,10 @@ class Tracker:
         frame_copy2 = frame.copy()
 
         # Track the get the output result to compare
-        tracker.track(frame_copy)
+        tracker_test.track(frame_copy)
 
         # Get pre-processed input
-        template, search, seq_input = tracker.preprocess_input(frame_copy2)
+        template, search, seq_input = tracker_onnx.preprocess_input(frame_copy2)
         print("Pre-processed inputs:")
         print(f"{template=}")
         print(f"{search=}")
