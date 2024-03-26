@@ -343,8 +343,8 @@ class Tracker:
         with torch.no_grad():
             device = 'cpu'
             template = template.to(device).type(torch.FloatTensor)
-            search = template.to(device).type(torch.FloatTensor)
-            seq_input = template.to(device).type(torch.FloatTensor)
+            search = search.to(device).type(torch.FloatTensor)
+            seq_input = seq_input.to(device).type(torch.FloatTensor)
             dummy_input = (template, search, seq_input)
             print(f"{template=}, {template.shape}")
             print(f"{search=}, {search.shape}")
