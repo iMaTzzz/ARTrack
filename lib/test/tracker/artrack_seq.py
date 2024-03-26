@@ -118,7 +118,7 @@ class ARTrackSeq(BaseTracker):
             out['template'] = template
             search = torch.randn([1, 3, 256, 256])
             out['search'] = search
-            seq_input = torch.rand([1, 28])
+            seq_input = torch.randn([1, 28])
             out['seq_input'] = seq_input
             out_dict = self.network.forward(
                 template=template, search=search,
