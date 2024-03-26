@@ -393,10 +393,10 @@ class Tracker:
 
         # Get pre-processed input
         template, search, seq_input = tracker_onnx.preprocess_input(frame_copy2)
-        print("Pre-processed inputs:")
-        print(f"{template=}")
-        print(f"{search=}")
-        print(f"{seq_input=}")
+        # print("Pre-processed inputs:")
+        # print(f"{template=}")
+        # print(f"{search=}")
+        # print(f"{seq_input=}")
         
         # Check the model
         onnx_model = onnx.load(input_onnx)
