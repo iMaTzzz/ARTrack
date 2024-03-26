@@ -402,10 +402,9 @@ class Tracker:
         state = [int(s) for s in out['target_bbox']]
         
         # Check the model
-
         onnx_model = onnx.load(input_onnx)
         onnx.checker.check_model(onnx_model)
-        print('Model :\n\n{}'.format(onnx.helper.printable_graph(onnx_model.graph)))
+        # print('Model :\n\n{}'.format(onnx.helper.printable_graph(onnx_model.graph)))
 
         # Run the model through onnx runtime
         device = 'cpu'
@@ -417,4 +416,9 @@ class Tracker:
         ort_session = onnxruntime.InferenceSession(input_onnx)
         ort_inputs = {'template': template.cpu().numpy(), 'search': search.cpu().numpy(), 'seq_input': seq_input.cpu().numpy()}
         ort_ouputs = ort_session.run(None, ort_inputs)
-        print(f"{ort_ouputs=}")
+        out_seqs, out_class, out_feat, out_x_feat, out_backbone_feat = ort_ouputs
+        print(f"{out['seqs']=} \n {out_seqs}")
+        print(f"{out['class']=} \n {out_class}")
+        print(f"{out['feat']=} \n {out_feat}")
+        print(f"{out['x_feat']=} \n {out_x_feat}")
+        print(f"{out['backbone_feat']=} \n {out_backbone_feat}")
