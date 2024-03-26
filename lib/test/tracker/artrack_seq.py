@@ -114,15 +114,15 @@ class ARTrackSeq(BaseTracker):
             # out['template'] = self.z_dict1.tensors
             # out['search'] = x_dict.tensors
             # out['seq_input'] = seqs_out
-            template = torch.randn(1, 3, 128, 128)
-            out['template'] = template
-            search = torch.randn(1, 3, 256, 256)
-            out['search'] = search
-            seq_input = torch.randn(1, 28)
-            out['seq_input'] = seq_input
+            tmp_template = torch.randn(1, 3, 128, 128)
+            out['template'] = tmp_template
+            tmp_search = torch.randn(1, 3, 256, 256)
+            out['search'] = tmp_search
+            tmp_seq_input = torch.randn(1, 28)
+            out['seq_input'] = tmp_seq_input
             out_dict = self.network.forward(
-                template=template, search=search,
-                seq_input=seq_input, stage="sequence")
+                template=tmp_template, search=tmp_search,
+                seq_input=tmp_seq_input, stage="sequence")
             print(f"{out_dict=}")
 
         self.x_feat = out_dict['x_feat']
