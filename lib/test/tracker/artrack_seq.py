@@ -106,14 +106,10 @@ class ARTrackSeq(BaseTracker):
                 seqs_out = torch.cat((seqs_out, box_out_i), dim=-1)
         seqs_out = seqs_out.unsqueeze(0)
         search = self.preprocessor.process(x_patch_arr, x_amask_arr)
-        out = dict()
         with torch.no_grad():
             x_dict = search
             # merge the template and the search
             # run the transformer
-            out['template'] = self.z_dict1.tensors
-            out['search'] = x_dict.tensors
-            out['seq_input'] = seqs_out
             out_dict = self.network.forward(
                 template=self.z_dict1.tensors, search=x_dict.tensors,
                 seq_input=seqs_out, stage="sequence")
@@ -171,7 +167,7 @@ class ARTrackSeq(BaseTracker):
                     if self.step:
                         self.step = False
                         break
-        # out = dict()
+        out = dict()
 
         if self.save_all_boxes:
             '''save all predictions'''
@@ -217,6 +213,30 @@ class ARTrackSeq(BaseTracker):
     def get_network(self):
         return self.network
 
+    def preprocess_input(self, image):
+        H, W, _ = image.shape
+        self.frame_id += 1
+        x_patch_arr, resize_factor, x_amask_arr = sample_target(image, self.state, self.params.search_factor,
+                                                                output_sz=self.params.search_size)  # (x1, y1, w, h)
+        for i in range(len(self.store_result)):
+            box_temp = self.store_result[i].copy()
+            box_out_i = transform_image_to_crop(torch.Tensor(self.store_result[i]), torch.Tensor(self.state),
+                                                resize_factor,
+                                                torch.Tensor([self.cfg.TEST.SEARCH_SIZE, self.cfg.TEST.SEARCH_SIZE]),
+                                                normalize=True)
+            box_out_i[2] = box_out_i[2] + box_out_i[0]
+            box_out_i[3] = box_out_i[3] + box_out_i[1]
+            box_out_i = box_out_i.clamp(min=-0.5, max=1.5)
+            box_out_i = (box_out_i + 0.5) * (self.bins - 1)
+            if i == 0:
+                seqs_out = box_out_i
+            else:
+                seqs_out = torch.cat((seqs_out, box_out_i), dim=-1)
+        seqs_out = seqs_out.unsqueeze(0)
+        search = self.preprocessor.process(x_patch_arr, x_amask_arr)
+        with torch.no_grad():
+            x_dict = search
+        return self.z_dict1.tensors, x_dict.tensors, seqs_out
 
 def get_tracker_class():
     return ARTrackSeq
