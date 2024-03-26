@@ -21,7 +21,6 @@ class ARTrackSeq(BaseTracker):
     def __init__(self, params):
         super(ARTrackSeq, self).__init__(params)
         network = build_artrack_seq(params.cfg, training=False)
-        print(self.params.checkpoint)
         network.load_state_dict(torch.load(self.params.checkpoint, map_location='cpu')['net'], strict=True)
         self.cfg = params.cfg
         self.bins = self.cfg.MODEL.BINS
@@ -110,6 +109,9 @@ class ARTrackSeq(BaseTracker):
             x_dict = search
             # merge the template and the search
             # run the transformer
+            print(f"template={self.z_dict1.tensors}")
+            print(f"search={x_dict.tensors}")
+            print(f"seq_input={seqs_out}")
             out_dict = self.network.forward(
                 template=self.z_dict1.tensors, search=x_dict.tensors,
                 seq_input=seqs_out, stage="sequence")
