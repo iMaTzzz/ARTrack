@@ -42,7 +42,7 @@ MODEL:
   EXTENSION: 3
   PRENUM: 7
   PRETRAIN_FILE: "mae_pretrain_vit_base.pth"
-  PRETRAIN_PTH: ""
+  PRETRAIN_PTH: "ARTrackV2FullSeq.pth"
   EXTRA_MERGER: False
   RETURN_INTER: False
   DECODER:
