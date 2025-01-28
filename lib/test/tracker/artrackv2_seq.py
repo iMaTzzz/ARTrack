@@ -14,17 +14,19 @@ import os
 from lib.test.tracker.data_utils import Preprocessor
 from lib.utils.box_ops import clip_box
 from lib.utils.ce_utils import generate_mask_cond
+import time
 
 
 class ARTrackV2Seq(BaseTracker):
-    def __init__(self, params, dataset_name):
+    def __init__(self, params):
         super(ARTrackV2Seq, self).__init__(params)
         network = build_artrackv2_seq(params.cfg, training=False)
         network.load_state_dict(torch.load(self.params.checkpoint, map_location='cpu')['net'], strict=True)
 
         self.cfg = params.cfg
         self.bins = params.cfg.MODEL.BINS
-        self.network = network.cuda()
+        self.network = network
+        # self.network = network.cuda()
         self.network.eval()
         self.preprocessor = Preprocessor()
         self.state = None
@@ -32,7 +34,8 @@ class ARTrackV2Seq(BaseTracker):
 
         self.feat_sz = self.cfg.TEST.SEARCH_SIZE // self.cfg.MODEL.BACKBONE.STRIDE
         # motion constrain
-        self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True).cuda()
+        self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True)
+        # self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True).cuda()
 
         # for debug
         self.debug = params.debug
@@ -158,34 +161,6 @@ class ARTrackV2Seq(BaseTracker):
                     self.store_result[i] = self.store_result[i + 1]
                 else:
                     self.store_result[i] = self.state.copy()
-
-        # for debug
-        if self.debug:
-            if not self.use_visdom:
-                x1, y1, w, h = self.state
-                image_BGR = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-                cv2.rectangle(image_BGR, (int(x1), int(y1)), (int(x1 + w), int(y1 + h)), color=(0, 0, 255), thickness=2)
-                save_path = os.path.join(self.save_dir, "%04d.jpg" % self.frame_id)
-                cv2.imwrite(save_path, image_BGR)
-            else:
-                self.visdom.register((image, info['gt_bbox'].tolist(), self.state), 'Tracking', 1, 'Tracking')
-
-                self.visdom.register(torch.from_numpy(x_patch_arr).permute(2, 0, 1), 'image', 1, 'search_region')
-                self.visdom.register(torch.from_numpy(self.z_patch_arr).permute(2, 0, 1), 'image', 1, 'template')
-                self.visdom.register(pred_score_map.view(self.feat_sz, self.feat_sz), 'heatmap', 1, 'score_map')
-                self.visdom.register((pred_score_map * self.output_window).view(self.feat_sz, self.feat_sz), 'heatmap',
-                                     1, 'score_map_hann')
-
-                if 'removed_indexes_s' in out_dict and out_dict['removed_indexes_s']:
-                    removed_indexes_s = out_dict['removed_indexes_s']
-                    removed_indexes_s = [removed_indexes_s_i.cpu().numpy() for removed_indexes_s_i in removed_indexes_s]
-                    masked_search = gen_visualization(x_patch_arr, removed_indexes_s)
-                    self.visdom.register(torch.from_numpy(masked_search).permute(2, 0, 1), 'image', 1, 'masked_search')
-
-                while self.pause_mode:
-                    if self.step:
-                        self.step = False
-                        break
 
         if self.save_all_boxes:
             '''save all predictions'''

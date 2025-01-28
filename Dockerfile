@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
     g++ \
+    bash \
+    vim \
+    libgl1-mesa-glx \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Miniconda
@@ -24,8 +27,5 @@ WORKDIR /workspace
 # Create the conda environment
 RUN conda env create -f /workspace/ARTrack_env_cuda113.yaml
 
-# Activate the conda environment
-SHELL ["conda", "run", "-n", "artrack", "/bin/bash", "-c"]
-
 # Set the default command
-CMD ["conda", "run", "-n", "artrack", "/bin/bash"]
+CMD ["/bin/bash"]

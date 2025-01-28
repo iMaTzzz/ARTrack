@@ -21,7 +21,7 @@ import time
 
 
 class ARTrackV2Seq(nn.Module):
-    """ This is the base class for OSTrack """
+    """ This is the base class for ARTrackV2Seq """
 
     def __init__(self, transformer,
                  cross_2_decoder,
@@ -125,7 +125,7 @@ def build_score_decoder(cfg, hidden_dim):
 def build_artrackv2_seq(cfg, training=True):
     current_dir = os.path.dirname(os.path.abspath(__file__))  # This is your Project Root
     pretrained_path = os.path.join(current_dir, '../../../pretrained_models')
-    if cfg.MODEL.PRETRAIN_FILE and ('OSTrack' not in cfg.MODEL.PRETRAIN_FILE) and training:
+    if cfg.MODEL.PRETRAIN_FILE and ('ARTrackV2' not in cfg.MODEL.PRETRAIN_FILE) and training:
         pretrained = os.path.join(pretrained_path, cfg.MODEL.PRETRAIN_FILE)
     else:
         pretrained = ''
