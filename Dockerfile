@@ -27,8 +27,8 @@ RUN git clone https://github.com/iMaTzzz/ARTrack.git /workspace/ARTrack && \
     git checkout ARTrackV2
 
 # Copy required files
-COPY hand.mp4 /workspace/ARTrack.
-COPY artrackv2_seq_256_full.pth.tar /workspace/ARTrack.
+COPY hand.mp4 /workspace/ARTrack/
+COPY artrackv2_seq_256_full.pth.tar /workspace/ARTrack/
 
 # Set working directory
 WORKDIR /workspace/ARTrack
