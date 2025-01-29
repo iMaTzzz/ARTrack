@@ -207,6 +207,45 @@ class ARTrackV2Seq(BaseTracker):
 
         self.enc_attn_weights = enc_attn_weights
 
+    def preprocess_input(self, image):
+        H, W, _ = image.shape
+        self.frame_id += 1
+        x_patch_arr, resize_factor, x_amask_arr = sample_target(image, self.state, self.params.search_factor,
+                                                                output_sz=self.params.search_size)  # (x1, y1, w, h)
+        if self.dz_feat == None:
+            self.dz_feat = self.network.backbone.patch_embed(self.z_dict2.tensors)
+        for i in range(len(self.store_result)):
+            box_temp = self.store_result[i].copy()
+            box_out_i = transform_image_to_crop(torch.Tensor(self.store_result[i]), torch.Tensor(self.state),
+                                                resize_factor,
+                                                torch.Tensor([self.cfg.TEST.SEARCH_SIZE, self.cfg.TEST.SEARCH_SIZE]),
+                                                normalize=True)
+            box_out_i[2] = box_out_i[2] + box_out_i[0]
+            box_out_i[3] = box_out_i[3] + box_out_i[1]
+            box_out_i = box_out_i.clamp(min=-0.5, max=1.5)
+            box_out_i = (box_out_i + 0.5) * (self.bins - 1)
+            if i == 0:
+                seqs_out = box_out_i
+            else:
+                seqs_out = torch.cat((seqs_out, box_out_i), dim=-1)
+
+        seqs_out = seqs_out.unsqueeze(0)
+
+        search = self.preprocessor.process(x_patch_arr, x_amask_arr)
+
+        with torch.no_grad():
+            x_dict = search
+            # merge the template and the search
+            # run the transformer
+            if self.update_:
+                template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.unsqueeze(1)], dim=1)
+            else:
+                template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
+        out_dict = self.network.forward(
+                template=template, dz_feat=self.dz_feat, search=x_dict.tensors, ce_template_mask=self.box_mask_z,
+                seq_input=seqs_out, stage="sequence", search_feature=self.x_feat)
+        return template, self.dz_feat, x_dict.tensors, self.box_mask_z, seqs_out, self.x_feat
+
 
 def get_tracker_class():
     return ARTrackV2Seq
