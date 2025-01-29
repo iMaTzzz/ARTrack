@@ -245,6 +245,6 @@ class BaseBackbone(nn.Module):
         print(f"x: {type(x)}, shape: {x.shape if isinstance(x, torch.Tensor) else 'N/A'}")
         print(f"identity: {type(identity)}, value: {identity}")
         print(f"seqs_input: {type(seqs_input)}, shape: {seqs_input.shape if isinstance(seqs_input, torch.Tensor) else 'N/A'}")
-        output = self.forward_features(z_0, z_1_feat, x, identity, seqs_input)
+        # output = self.forward_features(z_0, z_1_feat, x, identity, seqs_input)
 
         return output
