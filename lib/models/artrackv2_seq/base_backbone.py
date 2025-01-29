@@ -234,6 +234,11 @@ class BaseBackbone(nn.Module):
             x (torch.Tensor): merged template and search region feature, [B, L_z+L_x, C]
             attn : None
         """
+        print(f"z_0: {type(z_0)}, shape: {z_0.shape if isinstance(z_0, torch.Tensor) else 'N/A'}")
+        print(f"z_1_feat: {type(z_1_feat)}, shape: {z_1_feat.shape if isinstance(z_1_feat, torch.Tensor) else 'N/A'}")
+        print(f"x: {type(x)}, shape: {x.shape if isinstance(x, torch.Tensor) else 'N/A'}")
+        print(f"identity: {type(identity)}, value: {identity}")
+        print(f"seqs_input: {type(seqs_input)}, shape: {seqs_input.shape if isinstance(seqs_input, torch.Tensor) else 'N/A'}")
         output = self.forward_features(z_0, z_1_feat, x, identity, seqs_input)
 
         return output
