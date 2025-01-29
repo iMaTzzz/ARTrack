@@ -130,8 +130,6 @@ class BaseBackbone(nn.Module):
         share_weight = self.word_embeddings.weight.T
         out_list = []
 
-        print(f"{self.bins=} {type(self.bins)} {self.range} {type(self.range)}")
-        print(type(self.bins))
         x0 = self.bins * self.range
         y0 = self.bins * self.range + 1
         x1 = self.bins * self.range + 2
@@ -179,6 +177,7 @@ class BaseBackbone(nn.Module):
         x += self.pos_embed_x
 
         mask = generate_square_subsequent_mask(len_z, len_x, len_seq).to(tgt.device)
+        print(f"mask type={type(mask)}")
 
         tgt += query_seq_embed[:, :tgt.shape[1]]
 
