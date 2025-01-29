@@ -19,13 +19,22 @@ def generate_square_subsequent_mask(sz, sx, ss):
     # 0 means mask, 1 means visible
     sum = sz + sx + ss
     mask = (torch.triu(torch.ones(sum, sum)) == 1).transpose(0, 1)
-    mask[:, :] = 0
-    mask[:int(sz/2), :int(sz/2)] = 1 #template self
-    mask[int(sz/2):sz, int(sz/2):sz] = 1 # dt self
-    mask[int(sz/2):sz, sz:sz+sx] = 1 # dt search
-    mask[int(sz / 2):sz, -1] = 1  # dt search
-    mask[sz:sz+sx, :sz+sx] = 1 # sr dt-t-sr
-    mask[sz+sx:, :] = 1 # co dt-t-sr-co
+    # mask[:, :] = 0
+    # mask[:int(sz/2), :int(sz/2)] = 1 #template self
+    # mask[int(sz/2):sz, int(sz/2):sz] = 1 # dt self
+    # mask[int(sz/2):sz, sz:sz+sx] = 1 # dt search
+    # mask[int(sz / 2):sz, -1] = 1  # dt search
+    # mask[sz:sz+sx, :sz+sx] = 1 # sr dt-t-sr
+    # mask[sz+sx:, :] = 1 # co dt-t-sr-co
+
+    mask[:, :] = 0.0  # Ensure that it's float32, using 0.0 instead of 0
+    mask[:int(sz/2), :int(sz/2)] = 1.0  # template self
+    mask[int(sz/2):sz, int(sz/2):sz] = 1.0  # dt self
+    mask[int(sz/2):sz, sz:sz+sx] = 1.0  # dt search
+    mask[int(sz / 2):sz, -1] = 1.0  # dt search
+    mask[sz:sz+sx, :sz+sx] = 1.0  # sr dt-t-sr
+    mask[sz+sx:, :] = 1.0  # co dt-t-sr-co
+
     return ~mask
 
 class BaseBackbone(nn.Module):
