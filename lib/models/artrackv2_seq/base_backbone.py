@@ -142,6 +142,7 @@ class BaseBackbone(nn.Module):
                        torch.ones((B, 1)).to(x) * x1,
                        torch.ones((B, 1)).to(x) * y1,
                        torch.ones((B, 1)).to(x) * score], dim=1)
+        print(f"command dtype = {command.dtype}")
         trajectory = seqs_input
         command = command.to(trajectory)
         seqs_input_ = torch.cat([trajectory, command], dim=1)
