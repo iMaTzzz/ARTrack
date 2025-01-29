@@ -45,20 +45,9 @@ class ARTrackV2Seq(nn.Module):
                 dz_feat: torch.Tensor,
                 search: torch.Tensor,
                 seq_input: torch.Tensor,
-                ce_template_mask=None,
-                ce_keep_rate=None,
-                return_last_attn=False,
-                head_type=None,
-                stage=None,
-                search_feature=None,
-                target_in_search_img=None,
-                gt_bboxes=None,
                 ):
         template_0 = template[:, 0]
-        out, z_0_feat, z_1_feat, x_feat, score_feat = self.backbone(z_0=template_0, z_1_feat=dz_feat, x=search, identity=self.identity, seqs_input=seq_input,
-                                    ce_template_mask=ce_template_mask,
-                                    ce_keep_rate=ce_keep_rate,
-                                    return_last_attn=return_last_attn,)
+        out, z_1_feat, score_feat = self.backbone(z_0=template_0, z_1_feat=dz_feat, x=search, identity=self.identity, seqs_input=seq_input)
 
         seq_feat = out['seq_feat'].permute(1, 0 ,2)
         pos = self.backbone.position_embeddings.weight.unsqueeze(0).repeat(seq_feat.shape[1], 1, 1).permute(1, 0 ,2)
@@ -67,25 +56,11 @@ class ARTrackV2Seq(nn.Module):
         out['score'] = score
 
         loss = torch.tensor(0.0, dtype=torch.float32).to(search.device)
-        if target_in_search_img != None:
-            target_in_search_gt = self.backbone.patch_embed(target_in_search_img)
-            z_1_feat = z_1_feat.reshape(z_1_feat.shape[0], int(z_1_feat.shape[1] ** 0.5), int(z_1_feat.shape[1] ** 0.5),
-                                        z_1_feat.shape[2]).permute(0, 3, 1, 2)
-            target_in_search_gt = self.cross_2_decoder.unpatchify(target_in_search_gt)
-
-            update_img, loss_temp = self.cross_2_decoder(z_1_feat, target_in_search_gt)
-            update_feat = self.cross_2_decoder.patchify(update_img)
-            out['dz_feat'] = update_feat
-            loss += loss_temp
-
-            out['renew_loss'] = loss
-
-        else:
-           z_1_feat = z_1_feat.reshape(z_1_feat.shape[0], int(z_1_feat.shape[1] ** 0.5), int(z_1_feat.shape[1] ** 0.5),
-                                        z_1_feat.shape[2]).permute(0, 3, 1, 2)
-           update_feat = self.cross_2_decoder(z_1_feat, eval=True)
-           update_feat = self.cross_2_decoder.patchify(update_feat)
-           out['dz_feat'] = update_feat
+        z_1_feat = z_1_feat.reshape(z_1_feat.shape[0], int(z_1_feat.shape[1] ** 0.5), int(z_1_feat.shape[1] ** 0.5),
+                                    z_1_feat.shape[2]).permute(0, 3, 1, 2)
+        update_feat = self.cross_2_decoder(z_1_feat, eval=True)
+        update_feat = self.cross_2_decoder.patchify(update_feat)
+        out['dz_feat'] = update_feat
 
         return out
 

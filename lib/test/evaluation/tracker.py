@@ -54,7 +54,6 @@ class Tracker:
 
     def create_tracker(self, params):
         tracker = self.tracker_class(params)
-        print(tracker, type(tracker))
         return tracker
 
     def run_sequence(self, seq, debug=None):

@@ -178,11 +178,6 @@ class BaseBackbone(nn.Module):
         x += self.pos_embed_x
 
         mask = generate_square_subsequent_mask(len_z, len_x, len_seq).to(tgt.device).float()
-        print(f"x type: {x.dtype}, shape: {x.shape}")
-        print(f"identity type: {identity.dtype}, shape: {identity.shape}")
-        print(f"seqs_input type: {seqs_input.dtype}, shape: {seqs_input.shape}")
-        print(f"mask type: {mask.dtype}, shape: {mask.shape}")
-
 
         tgt += query_seq_embed[:, :tgt.shape[1]]
 
@@ -227,9 +222,9 @@ class BaseBackbone(nn.Module):
 
         output = {'seqs': seqs_output, 'class': values, 'feat': temp, "state": "val/test", "x_feat": output_x_feat.detach(), "seq_feat": seq_feat}
 
-        return output, z_0_feat, z_1_feat, x_feat, score_feat
+        return output, z_1_feat, score_feat
 
-    def forward(self, z_0, z_1_feat, x, identity, seqs_input, **kwargs):
+    def forward(self, z_0, z_1_feat, x, identity, seqs_input):
         """
         Joint feature extraction and relation modeling for the basic ViT backbone.
         Args:
@@ -240,11 +235,4 @@ class BaseBackbone(nn.Module):
             x (torch.Tensor): merged template and search region feature, [B, L_z+L_x, C]
             attn : None
         """
-        print(f"z_0: {type(z_0)}, shape: {z_0.shape if isinstance(z_0, torch.Tensor) else 'N/A'}")
-        print(f"z_1_feat: {type(z_1_feat)}, shape: {z_1_feat.shape if isinstance(z_1_feat, torch.Tensor) else 'N/A'}")
-        print(f"x: {type(x)}, shape: {x.shape if isinstance(x, torch.Tensor) else 'N/A'}")
-        print(f"identity: {type(identity)}, value: {identity}")
-        print(f"seqs_input: {type(seqs_input)}, shape: {seqs_input.shape if isinstance(seqs_input, torch.Tensor) else 'N/A'}")
-        output = self.forward_features(z_0, z_1_feat, x, identity, seqs_input)
-
-        return output
+        return self.forward_features(z_0, z_1_feat, x, identity, seqs_input)
