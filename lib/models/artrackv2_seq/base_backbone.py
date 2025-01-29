@@ -18,7 +18,7 @@ def generate_square_subsequent_mask(sz, sx, ss):
     """
     # 0 means mask, 1 means visible
     sum = sz + sx + ss
-    mask = (torch.triu(torch.ones(sum, sum))).transpose(0, 1)
+    mask = (torch.triu(torch.ones(sum, sum))).transpose(0, 1).to(torch.int)
     mask[:, :] = 0
     mask[:int(sz/2), :int(sz/2)] = 1 #template self
     mask[int(sz/2):sz, int(sz/2):sz] = 1 # dt self
