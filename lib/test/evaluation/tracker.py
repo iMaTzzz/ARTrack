@@ -285,21 +285,27 @@ class Tracker:
         # Get dummy input on the next frame by using track method
         ret, frame = cap.read()
         frame_disp = frame.copy()
-        template, search, seq_input = tracker.preprocess_input(frame_disp)
+        template, dz_feat, search, ce_template_mask, seq_input, search_feature = tracker.preprocess_input(frame_disp)
 
         with torch.no_grad():
             device = 'cpu'
             template = template.to(device).type(torch.FloatTensor)
+            dz_feat = dz_feat.to(device).type(torch.FloatTensor)
             search = search.to(device).type(torch.FloatTensor)
+            ce_template_mask = ce_template_mask.to(device).type(torch.FloatTensor)
             seq_input = seq_input.to(device).type(torch.FloatTensor)
-            dummy_input = (template, search, seq_input)
+            search_feature = search_feature.to(device).type(torch.FloatTensor)
+            dummy_input = (template, dz_feat, search, ce_template_mask, seq_input, search_feature)
             print(f"{template=}, {template.shape}")
+            print(f"{dz_feat=}, {dz_feat.shape}")
             print(f"{search=}, {search.shape}")
+            print(f"{ce_template_mask=}, {ce_template_mask.shape}")
             print(f"{seq_input=}, {seq_input.shape}")
+            print(f"{search_feature=}, {search_feature.shape}")
             print(f"{dummy_input=}")
             onnx_path = "tracking.onnx"
-            input_names = ['template', 'search', 'seq_input']
-            output_names = ['seqs', 'class', 'feat', 'x_feat', 'backbone_feat']
+            input_names = ['template', 'dz_feat', 'search', 'ce_template_mark', 'seq_input', 'search_feature']
+            output_names = ['seqs', 'feat', 'x_feat', 'dz_feat']
             print('\n Exporting................... \n')
             torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names, opset_version=11)
 
