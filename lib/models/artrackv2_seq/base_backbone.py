@@ -26,6 +26,7 @@ def generate_square_subsequent_mask(sz, sx, ss):
     mask[int(sz / 2):sz, -1] = 1  # dt search
     mask[sz:sz+sx, :sz+sx] = 1 # sr dt-t-sr
     mask[sz+sx:, :] = 1 # co dt-t-sr-co
+    print(f"mask dtype = {mask.dtype}")
     return ~mask
 
 class BaseBackbone(nn.Module):
