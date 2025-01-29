@@ -245,22 +245,6 @@ class BaseBackbone(nn.Module):
         print(f"x: {type(x)}, shape: {x.shape if isinstance(x, torch.Tensor) else 'N/A'}")
         print(f"identity: {type(identity)}, value: {identity}")
         print(f"seqs_input: {type(seqs_input)}, shape: {seqs_input.shape if isinstance(seqs_input, torch.Tensor) else 'N/A'}")
-        # output = self.forward_features(z_0, z_1_feat, x, identity, seqs_input)
+        output = self.forward_features(z_0, z_1_feat, x, identity, seqs_input)
 
-        # return output
-
-        B = x.shape[0]
-        len_z_single = self.pos_embed_z.shape[1]
-        len_x = x.shape[1]
-        len_seq = seqs_input.shape[1]
-        
-        # Zero placeholders for each output
-        seqs_output = torch.zeros((B, len_seq), dtype=torch.long, device=x.device)
-        values = torch.zeros((B, len_seq), dtype=torch.float32, device=x.device)
-        temp = torch.zeros((B, len_x), dtype=torch.float32, device=x.device)
-        score_feat = torch.zeros((B, 1), dtype=torch.float32, device=x.device)
-        x_feat = torch.zeros((B, len_x), dtype=torch.float32, device=x.device)
-        seq_feat = torch.zeros((B, len_x), dtype=torch.float32, device=x.device)
-
-        # Return zero-filled tensors directly
-        return {'seqs': seqs_output, 'class': values, 'feat': temp, "state": "val/test", "x_feat": x_feat, "seq_feat": seq_feat}, None, None, x_feat, score_feat
+        return output
