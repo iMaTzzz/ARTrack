@@ -47,7 +47,6 @@ class ARTrackV2Seq(nn.Module):
                 seq_input: torch.Tensor,
                 ):
         template_0 = template[:, 0]
-        print(f"{self.identity=}")
         out, z_1_feat, score_feat = self.backbone(z_0=template_0, z_1_feat=dz_feat, x=search, identity=self.identity, seqs_input=seq_input)
 
         seq_feat = out['seq_feat'].permute(1, 0 ,2)
