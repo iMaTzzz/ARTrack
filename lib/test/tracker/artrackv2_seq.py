@@ -241,6 +241,8 @@ class ARTrackV2Seq(BaseTracker):
                 template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.unsqueeze(1)], dim=1)
             else:
                 template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
+        print(f"template={type(template)}, dz_feat={type(self.dz_feat)}, x_dict.tensors={type(x_dict.tensors)}, "
+      f"box_mask_z={type(self.box_mask_z)}, seqs_out={type(seqs_out)}, x_feat={type(self.x_feat)}")
         return template, self.dz_feat, x_dict.tensors, self.box_mask_z, seqs_out, self.x_feat
 
 
