@@ -280,7 +280,7 @@ class Tracker:
         tracker.initialize(frame, init_bbox)
 
         # Get model we want to export
-        model = tracker.get_network()
+        model = tracker.network
 
         # Get dummy input on the next frame by using track method
         ret, frame = cap.read()

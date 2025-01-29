@@ -23,7 +23,7 @@ def export2onnx(tracker_name, tracker_param, input_video):
     print(f"{tracker_name=}, {tracker_param=}, {input_video=}")
 
     # Initializing tracker
-    tracker = Tracker(tracker_name, tracker_param)
+    tracker = Tracker("artrackv2_seq", tracker_param)
 
     # beach.mp4
     init_bbox = [790, 1440, 171, 387]
