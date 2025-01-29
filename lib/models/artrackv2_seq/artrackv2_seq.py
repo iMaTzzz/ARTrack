@@ -37,7 +37,9 @@ class ARTrackV2Seq(nn.Module):
         self.score_mlp = score_mlp
 
         self.identity = torch.nn.Parameter(torch.zeros(1, 3, 768))
+        print(f"{self.identity=}")
         self.identity = trunc_normal_(self.identity, std=.02)
+        print(f"{self.identity=}")
 
         self.cross_2_decoder = cross_2_decoder
 
