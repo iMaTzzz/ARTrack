@@ -47,24 +47,6 @@ class ARTrackV2Seq(nn.Module):
                 seq_input: torch.Tensor,
                 ):
         template_0 = template[:, 0]
-
-        print(f"template_0 shape: {template_0.shape}, dtype: {template_0.dtype}")
-        print(f"dz_feat shape: {dz_feat.shape}, dtype: {dz_feat.dtype}")
-        print(f"search shape: {search.shape}, dtype: {search.dtype}")
-        print(f"seq_input shape: {seq_input.shape}, dtype: {seq_input.dtype}")
-
-        # Check patch embedding output
-        try:
-            template_embed = self.backbone.patch_embed(template_0)
-            search_embed = self.backbone.patch_embed(search)
-            dz_embed = self.backbone.patch_embed(dz_feat)
-
-            print(f"template_embed shape: {template_embed.shape}")
-            print(f"search_embed shape: {search_embed.shape}")
-            print(f"dz_embed shape: {dz_embed.shape}")
-        except Exception as e:
-            print(f"Patch embedding error: {e}")
-
         out, z_1_feat, score_feat = self.backbone(z_0=template_0, z_1_feat=dz_feat, x=search, identity=self.identity, seqs_input=seq_input)
 
         seq_feat = out['seq_feat'].permute(1, 0 ,2)
