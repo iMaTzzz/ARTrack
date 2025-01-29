@@ -130,6 +130,8 @@ class BaseBackbone(nn.Module):
         share_weight = self.word_embeddings.weight.T
         out_list = []
 
+        print(f"{self.bins=} {type(self.bins)} {self.range} {type(self.range)}")
+        print(type(self.bins))
         x0 = self.bins * self.range
         y0 = self.bins * self.range + 1
         x1 = self.bins * self.range + 2
