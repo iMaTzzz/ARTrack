@@ -138,7 +138,8 @@ class VisionTransformer(BaseBackbone):
         self.bins = bins
         in_channel = embed_dim
         self.range = range_time
-        self.word_embeddings = nn.Embedding(self.bins * self.range + 6, in_channel, padding_idx=self.bins * self.range+4, max_norm=1, norm_type=2.0)
+        self.word_embeddings = nn.Embedding(self.bins * self.range + 6, in_channel, padding_idx=self.bins * self.range+4, norm_type=2.0)
+        # self.word_embeddings = nn.Embedding(self.bins * self.range + 6, in_channel, padding_idx=self.bins * self.range+4, max_norm=1, norm_type=2.0)
 
         self.position_embeddings = nn.Embedding(
             5, in_channel)
