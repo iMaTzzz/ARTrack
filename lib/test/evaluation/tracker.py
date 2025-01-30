@@ -338,7 +338,7 @@ class Tracker:
         frame_copy2 = frame.copy()
 
         # Track the get the output result to compare
-        tracker_test.track(frame_copy)
+        # test_out = tracker_test.track(frame_copy)
 
         # Get pre-processed input
         template, dz_feat, search, seq_input = tracker_onnx.preprocess_input(frame_copy2)
