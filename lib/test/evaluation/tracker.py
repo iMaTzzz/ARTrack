@@ -338,7 +338,7 @@ class Tracker:
         frame_copy2 = frame.copy()
 
         # Track the get the output result to compare
-        # test_out = tracker_test.track(frame_copy)
+        test_out = tracker_test.track(frame_copy)
 
         # Get pre-processed input
         template, dz_feat, search, seq_input = tracker_onnx.preprocess_input(frame_copy2)
@@ -364,8 +364,8 @@ class Tracker:
         tic = time.time()
         ort_ouputs = ort_session.run(None, ort_inputs)
         total_time = time.time() - tic
-        print(f"onnx took {total_time=}\n {ort_ouputs=}")
-        # print(f"{out['seqs']=} \n {out_seqs}")
+        print(f"onnx took {total_time=}\n")
+        print(f"{test_out['seqs']=} vs {ort_ouputs["seqs"]=}")
         # print(f"{out['class']=} \n {out_class}")
         # print(f"{out['feat']=} \n {out_feat}")
         # print(f"{out['x_feat']=} \n {out_x_feat}")
