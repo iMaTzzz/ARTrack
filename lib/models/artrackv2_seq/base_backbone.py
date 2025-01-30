@@ -179,7 +179,6 @@ class BaseBackbone(nn.Module):
         x += self.pos_embed_x
 
         mask = generate_square_subsequent_mask(len_z, len_x, len_seq).to(tgt.device)
-        print(f"mask dtype = {mask.dtype}")
 
         tgt += query_seq_embed[:, :tgt.shape[1]]
 
