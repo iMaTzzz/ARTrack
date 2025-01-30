@@ -349,7 +349,6 @@ class Tracker:
         
         # Check the model
         onnx_model = onnx.load(input_onnx)
-        print("Expected ONNX Inputs:", [input.name for input in onnx_model.graph.input])
         onnx.checker.check_model(onnx_model)
         # print('Model :\n\n{}'.format(onnx.helper.printable_graph(onnx_model.graph)))
 
@@ -360,12 +359,11 @@ class Tracker:
             'search': search.detach().cpu().numpy(), 
             'seq_input': seq_input.detach().cpu().numpy()
         }
-        print("ONNX Inputs:", {k: type(v) for k, v in ort_inputs.items()})
         tic = time.time()
         ort_ouputs = ort_session.run(None, ort_inputs)
         total_time = time.time() - tic
         print(f"onnx took {total_time=}\n")
-        print(f"{test_out['seqs']=} vs {ort_ouputs['seqs']=}")
+        print(f"{test_out['seqs']=} vs {ort_ouputs[0]=}")
         # print(f"{out['class']=} \n {out_class}")
         # print(f"{out['feat']=} \n {out_feat}")
         # print(f"{out['x_feat']=} \n {out_x_feat}")
