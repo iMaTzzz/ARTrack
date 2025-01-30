@@ -355,6 +355,7 @@ class Tracker:
 
         ort_session = onnxruntime.InferenceSession(input_onnx)
         ort_inputs = {'template': template.cpu().numpy, 'dz_feat.1': dz_feat.cpu().numpy, 'search': search.cpu().numpy(), 'seq_input': seq_input.cpu().numpy()}
+        print("ONNX Inputs:", {k: type(v) for k, v in ort_inputs.items()})
         tic = time.time()
         ort_ouputs = ort_session.run(None, ort_inputs)
         total_time = time.time() - tic
