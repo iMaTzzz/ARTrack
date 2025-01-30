@@ -349,6 +349,7 @@ class Tracker:
         
         # Check the model
         onnx_model = onnx.load(input_onnx)
+        print("Expected ONNX Inputs:", [input.name for input in onnx_model.graph.input])
         onnx.checker.check_model(onnx_model)
         # print('Model :\n\n{}'.format(onnx.helper.printable_graph(onnx_model.graph)))
 
