@@ -26,7 +26,7 @@ def generate_square_subsequent_mask(sz, sx, ss):
     mask[int(sz / 2):sz, -1] = 1  # dt search
     mask[sz:sz+sx, :sz+sx] = 1 # sr dt-t-sr
     mask[sz+sx:, :] = 1 # co dt-t-sr-co
-    print(f"mask dtype = {mask.dtype}")
+    mask = mask.bool()
     return ~mask
 
 class BaseBackbone(nn.Module):
@@ -128,7 +128,8 @@ class BaseBackbone(nn.Module):
                     self.add_module(layer_name, layer)
 
     def forward_features(self, z_0, z_1_feat, x, identity, seqs_input):
-        share_weight = self.word_embeddings.weight.T
+        # share_weight = self.word_embeddings.weight.T
+        share_weight = self.word_embeddings.weight.transpose(0, 1)
         out_list = []
 
         x0 = self.bins * self.range
