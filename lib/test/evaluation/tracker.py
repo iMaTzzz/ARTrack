@@ -339,10 +339,6 @@ class Tracker:
 
         # Get pre-processed input for the ONNX model
         template, dz_feat, search, seq_input = tracker_onnx.preprocess_input(frame)
-        template = template.detach().cpu().numpy()
-        dz_feat = dz_feat.detach().cpu().numpy()
-        search = search.detach().cpu().numpy()
-        seq_input = seq_input.detach().cpu().numpy()
 
         # Check the model (optional)
         onnx_model = onnx.load(input_onnx)
@@ -360,10 +356,10 @@ class Tracker:
 
             # Prepare inputs for ONNX inference
             ort_inputs = {
-                'template': template,
-                'dz_feat.1': dz_feat,
-                'search': search,
-                'seq_input': seq_input,
+                'template': template.detach().cpu().numpy(),  # Detach before calling numpy()
+                'dz_feat.1': dz_feat.detach().cpu().numpy(),
+                'search': search.detach().cpu().numpy(),
+                'seq_input': seq_input.detach().cpu().numpy()
             }
 
             tic = time.time()  # Start timing inference
