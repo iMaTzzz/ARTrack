@@ -341,7 +341,7 @@ class Tracker:
         tracker_test.track(frame_copy)
 
         # Get pre-processed input
-        template, search, seq_input = tracker_onnx.preprocess_input(frame_copy2)
+        template, dz_feat, search, seq_input = tracker_onnx.preprocess_input(frame_copy2)
         # print("Pre-processed inputs:")
         # print(f"{template=}")
         # print(f"{search=}")
@@ -353,9 +353,11 @@ class Tracker:
         # print('Model :\n\n{}'.format(onnx.helper.printable_graph(onnx_model.graph)))
 
         ort_session = onnxruntime.InferenceSession(input_onnx)
-        ort_inputs = {'template': template.cpu().numpy(), 'search': search.cpu().numpy(), 'seq_input': seq_input.cpu().numpy()}
+        ort_inputs = {'template': template.cpu().numpy, 'dz_feat': dz_feat.cpu().numpy, 'search': search.cpu().numpy(), 'seq_input': seq_input.cpu().numpy()}
+        tic = time.time()
         ort_ouputs = ort_session.run(None, ort_inputs)
-        print(f"{ort_ouputs=}")
+        total_time = time.time() - tic
+        print(f"onnx took {total_time=}\n {ort_ouputs=}")
         # print(f"{out['seqs']=} \n {out_seqs}")
         # print(f"{out['class']=} \n {out_class}")
         # print(f"{out['feat']=} \n {out_feat}")
