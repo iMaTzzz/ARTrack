@@ -365,7 +365,7 @@ class Tracker:
         ort_ouputs = ort_session.run(None, ort_inputs)
         total_time = time.time() - tic
         print(f"onnx took {total_time=}\n")
-        print(f"{test_out['seqs']=} vs {ort_ouputs["seqs"]=}")
+        print(f"{test_out['seqs']=} vs {ort_ouputs['seqs']=}")
         # print(f"{out['class']=} \n {out_class}")
         # print(f"{out['feat']=} \n {out_feat}")
         # print(f"{out['x_feat']=} \n {out_x_feat}")
