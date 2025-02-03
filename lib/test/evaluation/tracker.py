@@ -302,10 +302,9 @@ class Tracker:
             # print(f"{dummy_input=}")
             onnx_path = "tracking.onnx"
             input_names = ['template', 'dz_feat', 'search', 'seq_input']
-            # output_names = ['seqs', 'feat', 'x_feat', 'dz_feat']
+            output_names = ['predicted_tokens', 'sequence_scores', 'sequence_features', 'score', 'dz_feat']
             print('\n Exporting................... \n')
-            torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, opset_version=15)
-            # torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names, opset_version=15)
+            torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names, opset_version=15)
 
     def run_onnx(self, input_video, init_bbox, input_onnx):
         """Run the tracker with the video file and sum the inference time for each frame.
