@@ -348,6 +348,11 @@ class Tracker:
         # Get pre-processed input for the ONNX model
         template, appearance_features, search, seq_input = tracker_onnx.preprocess_input(frame)
 
+        ort_session_patch = onnxruntime.InferenceSession("PatchEmbed.onnx", providers=providers)
+        patchEmbedOutput = ort_session_patch.run(None, template)
+        print(f"{tracker_onnx.dz_feat=}")
+        print(f"{patchEmbedOutput=}")
+
         # Check the model (optional)
         onnx_model = onnx.load(input_onnx)
         onnx.checker.check_model(onnx_model)
