@@ -339,7 +339,7 @@ class Tracker:
         tracker_onnx.initialize(frame, init_bbox)
 
         # Get pre-processed input for the ONNX model
-        template, dz_feat, search, seq_input = tracker_onnx.preprocess_input(frame)
+        template, appearance_features, search, seq_input = tracker_onnx.preprocess_input(frame)
 
         # Check the model (optional)
         onnx_model = onnx.load(input_onnx)
@@ -359,7 +359,7 @@ class Tracker:
             # Prepare inputs for ONNX inference
             ort_inputs = {
                 'template': template.detach().cpu().numpy(),
-                'dz_feat': dz_feat.detach().cpu().numpy(),
+                'appearance_features': appearance_features.detach().cpu().numpy(),
                 'search': search.detach().cpu().numpy(),
                 'seq_input': seq_input.detach().cpu().numpy()
             }
@@ -369,7 +369,7 @@ class Tracker:
             inference_time_ort = time.time() - tic  # Calculate the time taken for this frame
 
             tic = time.time()
-            original_outputs = tracker_test.network.forward(template, dz_feat, search, seq_input)
+            original_outputs = tracker_test.network.forward(template, appearance_features, search, seq_input)
             inference_time_original = time.time() - tic  # Calculate the time taken for this frame
             
             total_time_ort += inference_time_ort  # Accumulate the inference time
