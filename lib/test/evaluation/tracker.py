@@ -355,7 +355,7 @@ class Tracker:
         }
         patchEmbedOutput = ort_session_patch.run(None, ort_patch_input)
         print(f"{tracker_onnx.dz_feat=}")
-        print(f"{patchEmbedOutput=}")
+        print(f"{patchEmbedOutput['sequence_features']=}")
 
         # Check the model (optional)
         onnx_model = onnx.load(input_onnx)
