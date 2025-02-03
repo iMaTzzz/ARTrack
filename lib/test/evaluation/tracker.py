@@ -350,7 +350,10 @@ class Tracker:
         providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']  # Try CUDA first, fall back to CPU if necessary
 
         ort_session_patch = onnxruntime.InferenceSession("PatchEmbed.onnx", providers=providers)
-        patchEmbedOutput = ort_session_patch.run(None, template)
+        ort_patch_input = {
+            'template': template.detach().cpu().numpy()
+        }
+        patchEmbedOutput = ort_session_patch.run(None, ort_patch_input)
         print(f"{tracker_onnx.dz_feat=}")
         print(f"{patchEmbedOutput=}")
 
