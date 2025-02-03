@@ -176,12 +176,9 @@ class ARTrackV2Seq(BaseTracker):
         self.enc_attn_weights = enc_attn_weights
 
     def preprocess_input(self, image):
-        H, W, _ = image.shape
         self.frame_id += 1
         x_patch_arr, resize_factor, _ = sample_target(image, self.state, self.params.search_factor,
                                                                 output_sz=self.params.search_size)  # (x1, y1, w, h)
-        if self.dz_feat == None:
-            self.dz_feat = self.network.backbone.patch_embed(self.z_dict2.tensors)
         for i in range(len(self.store_result)):
             box_temp = self.store_result[i].copy()
             box_out_i = transform_image_to_crop(torch.Tensor(self.store_result[i]), torch.Tensor(self.state),
@@ -200,13 +197,7 @@ class ARTrackV2Seq(BaseTracker):
         seqs_out = seqs_out.unsqueeze(0)
 
         search = self.preprocessor.process(x_patch_arr)
-
-        with torch.no_grad():
-            x_dict = search
-            # merge the template and the search
-            # run the transformer
-            template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
-        return template, self.dz_feat, x_dict.tensors, seqs_out
+        return self.template, self.dz_feat, search, seqs_out
 
 
 def get_tracker_class():
