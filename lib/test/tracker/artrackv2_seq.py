@@ -42,11 +42,11 @@ class ARTrackV2Seq(BaseTracker):
         self.store_result = None
         self.prenum = params.cfg.MODEL.PRENUM
         self.range = params.cfg.MODEL.RANGE
-        self.x_feat = None
+        # self.x_feat = None
 
     def initialize(self, image, info: dict):
         # forward the template once
-        self.x_feat = None
+        # self.x_feat = None
         self.update_ = False
 
         z_patch_arr, resize_factor, _ = sample_target(image, info['init_bbox'], self.params.template_factor,
@@ -100,11 +100,11 @@ class ARTrackV2Seq(BaseTracker):
                 template=self.template, dz_feat=self.dz_feat, search=search, seq_input=seqs_out)
 
         self.dz_feat = out_dict['dz_feat']
-        self.x_feat = out_dict['x_feat']
+        # self.x_feat = out_dict['x_feat']
 
-        pred_boxes = (out_dict['seqs'][:, 0:4] + 0.5) / (self.bins - 1) - 0.5
+        pred_boxes = (out_dict['predicted_tokens'][:, 0:4] + 0.5) / (self.bins - 1) - 0.5
 
-        pred_feat = out_dict['feat']
+        pred_feat = out_dict['sequence_features']
         pred = pred_feat.permute(1, 0, 2).reshape(-1, self.bins * self.range + 6)
 
         pred = pred_feat[0:4, :, 0:self.bins * self.range]
@@ -199,14 +199,13 @@ class ARTrackV2Seq(BaseTracker):
 
         seqs_out = seqs_out.unsqueeze(0)
 
-        search = self.preprocessor.process(x_patch_arr, x_amask_arr)
+        search = self.preprocessor.process(x_patch_arr)
 
         with torch.no_grad():
             x_dict = search
             # merge the template and the search
             # run the transformer
             template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
-        print(f"template={template}, dz_feat={self.dz_feat}, x_dict.tensors={x_dict.tensors}, seqs_out={seqs_out}")
         return template, self.dz_feat, x_dict.tensors, seqs_out
 
 

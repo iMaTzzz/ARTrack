@@ -35,8 +35,6 @@ class ARTrackV2Seq(nn.Module):
         super().__init__()
         self.backbone = transformer
         self.score_mlp = score_mlp
-        print(f"{transformer=}")
-        print(f"{score_mlp=}")
 
         self.identity = torch.nn.Parameter(torch.zeros(1, 3, 768))
         self.identity = trunc_normal_(self.identity, std=.02)
@@ -140,9 +138,7 @@ def build_artrackv2_seq(cfg, training=True):
     load_from = cfg.MODEL.PRETRAIN_PTH
     checkpoint = torch.load(load_from, map_location="cpu")
     missing_keys, unexpected_keys = model.load_state_dict(checkpoint["net"], strict=False)
-    print('Load pretrained model from: ' + load_from)
     if 'sequence' in cfg.MODEL.PRETRAIN_FILE and training:
-        print("i change myself")
         checkpoint = torch.load(cfg.MODEL.PRETRAIN_FILE, map_location="cpu")
         missing_keys, unexpected_keys = model.load_state_dict(checkpoint["net"], strict=False)
         print('Load pretrained model from: ' + cfg.MODEL.PRETRAIN_FILE)

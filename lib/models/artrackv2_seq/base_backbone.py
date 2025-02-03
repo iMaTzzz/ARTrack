@@ -202,7 +202,7 @@ class BaseBackbone(nn.Module):
 
         x_out = self.norm(zxs[:, -5:-1])
         score_feat = zxs[:, -1]
-        seq_feat = x_out
+        # seq_feat = x_out
 
         possibility = torch.matmul(x_out, share_weight)
         out = possibility + self.output_bias
@@ -221,7 +221,7 @@ class BaseBackbone(nn.Module):
                 seqs_output = torch.cat([seqs_output, extra_seq], dim=-1)
                 values = torch.cat([values, value], dim=-1)
 
-        output = {'seqs': seqs_output, 'class': values, 'feat': temp, "state": "val/test", "x_feat": output_x_feat.detach(), "seq_feat": seq_feat}
+        output = {'predicted_tokens': seqs_output, 'sequence_scores': values, 'sequence_features': temp}
 
         return output, z_1_feat, score_feat
 
