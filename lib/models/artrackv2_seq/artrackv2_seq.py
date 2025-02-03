@@ -50,13 +50,13 @@ class ARTrackV2Seq(nn.Module):
                 ):
         out, z_1_feat, score_feat = self.backbone(z_0=template, z_1_feat=dz_feat, x=search, identity=self.identity, seqs_input=seq_input)
 
-        seq_feat = out['seq_feat'].permute(1, 0 ,2)
-        pos = self.backbone.position_embeddings.weight.unsqueeze(0).repeat(seq_feat.shape[1], 1, 1).permute(1, 0 ,2)
+        # seq_feat = out['seq_feat'].permute(1, 0 ,2)
+        # pos = self.backbone.position_embeddings.weight.unsqueeze(0).repeat(seq_feat.shape[1], 1, 1).permute(1, 0 ,2)
 
         score = self.score_mlp(score_feat)
         out['score'] = score
 
-        loss = torch.tensor(0.0, dtype=torch.float32).to(search.device)
+        # loss = torch.tensor(0.0, dtype=torch.float32).to(search.device)
         z_1_feat = z_1_feat.reshape(z_1_feat.shape[0], int(z_1_feat.shape[1] ** 0.5), int(z_1_feat.shape[1] ** 0.5),
                                     z_1_feat.shape[2]).permute(0, 3, 1, 2)
         update_feat = self.cross_2_decoder(z_1_feat, eval=True)

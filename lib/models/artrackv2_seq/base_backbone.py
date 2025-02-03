@@ -138,7 +138,7 @@ class BaseBackbone(nn.Module):
         y1 = self.bins * self.range + 3
         score = self.bins * self.range + 5
 
-        B, H, W = x.shape[0], x.shape[2], x.shape[3]
+        B = x.shape[0]
 
         command = torch.cat([torch.ones((B, 1)).to(x) * x0, torch.ones((B, 1)).to(x) * y0,
                        torch.ones((B, 1)).to(x) * x1,
@@ -189,16 +189,16 @@ class BaseBackbone(nn.Module):
 
         zxs = self.pos_drop(zxs)
 
-        for j, blk in enumerate(self.blocks):
+        for blk in self.blocks:
             zxs = blk(zxs, padding_mask=mask)
-        for j, blk in enumerate(self.extension):
+        for blk in self.extension:
             zxs = blk(zxs, padding_mask=mask)
 
         lens_z_single = self.pos_embed_z.shape[1]
 
-        z_0_feat = zxs[:, :lens_z_single]
+        # z_0_feat = zxs[:, :lens_z_single]
         z_1_feat = zxs[:, lens_z_single:lens_z_single*2]
-        x_feat = zxs[:, lens_z_single*2:lens_z_single*2+len_x]
+        # x_feat = zxs[:, lens_z_single*2:lens_z_single*2+len_x]
 
         x_out = self.norm(zxs[:, -5:-1])
         score_feat = zxs[:, -1]
