@@ -57,7 +57,7 @@ class ARTrackV2Seq(BaseTracker):
         with torch.no_grad():
             self.z_dict1 = template
             self.z_dict2 = template
-            self.dz_feat = None
+            self.dz_feat = self.network.backbone.patch_embed(z_patch_arr)
 
         self.box_mask_z = None
 
@@ -75,10 +75,6 @@ class ARTrackV2Seq(BaseTracker):
         self.frame_id += 1
         x_patch_arr, resize_factor, x_amask_arr = sample_target(image, self.state, self.params.search_factor,
                                                                 output_sz=self.params.search_size)  # (x1, y1, w, h)
-        if self.dz_feat == None:
-            print(f"dz_feat is None and {self.frame_id=}")
-        if self.dz_feat == None:
-            self.dz_feat = self.network.backbone.patch_embed(self.z_dict2.tensors)
         for i in range(len(self.store_result)):
             box_temp = self.store_result[i].copy()
             box_out_i = transform_image_to_crop(torch.Tensor(self.store_result[i]), torch.Tensor(self.state),
