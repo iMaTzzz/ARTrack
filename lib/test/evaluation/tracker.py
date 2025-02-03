@@ -287,6 +287,10 @@ class Tracker:
         frame_disp = frame.copy()
         template, appearance_features, search, seq_input = tracker.preprocess_input(frame)
 
+        # ------------
+        print(f"{tracker.network.backbone.patch_embed=}")
+        # ------------
+
         with torch.no_grad():
             device = 'cpu'
             template = template.to(device).type(torch.FloatTensor)
