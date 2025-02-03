@@ -37,22 +37,8 @@ class ARTrackV2Seq(BaseTracker):
         self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True)
         # self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True).cuda()
 
-        # for debug
-        self.debug = params.debug
-        self.use_visdom = params.debug
         self.frame_id = 0
-        if self.debug:
-            if not self.use_visdom:
-                self.save_dir = "debug"
-                if not os.path.exists(self.save_dir):
-                    os.makedirs(self.save_dir)
-            else:
-                # self.add_hook()
-                self._init_visdom(None, 1)
         # for save boxes from all queries
-        print(f"{params=}")
-        print(f"{params.save_all_boxes=}")
-        self.save_all_boxes = params.save_all_boxes
         self.z_dict1 = {}
         self.store_result = None
         self.prenum = params.cfg.MODEL.PRENUM
@@ -89,6 +75,8 @@ class ARTrackV2Seq(BaseTracker):
         self.frame_id += 1
         x_patch_arr, resize_factor, x_amask_arr = sample_target(image, self.state, self.params.search_factor,
                                                                 output_sz=self.params.search_size)  # (x1, y1, w, h)
+        if self.dz_feat == None:
+            print(f"dz_feat is None and {self.frame_id=}")
         if self.dz_feat == None:
             self.dz_feat = self.network.backbone.patch_embed(self.z_dict2.tensors)
         for i in range(len(self.store_result)):
@@ -160,14 +148,7 @@ class ARTrackV2Seq(BaseTracker):
 
         out = dict()
 
-        if self.save_all_boxes:
-            '''save all predictions'''
-            all_boxes = self.map_box_back_batch(pred_boxes * self.params.search_size / resize_factor, resize_factor)
-            all_boxes_save = all_boxes.view(-1).tolist()  # (4N, )
-            out["target_bbox"] = self.state
-            out["all_boxes"] = all_boxes_save
-        else:
-            out["target_bbox"] = self.state
+        out["target_bbox"] = self.state
         # Record time taken per inference
         out['time'] = time.time() - tic
         return out
