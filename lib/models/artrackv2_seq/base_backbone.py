@@ -149,7 +149,6 @@ class BaseBackbone(nn.Module):
         seqs_input_ = torch.cat([trajectory, command], dim=1)
         
         seqs_input_ = seqs_input_.to(torch.int64).to(x.device)
-        output_x_feat = x.clone()
         tgt = self.word_embeddings(seqs_input_).permute(1, 0, 2)
         
         x = self.patch_embed(x)

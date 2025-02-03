@@ -285,8 +285,7 @@ class Tracker:
         # Get dummy input on the next frame by using track method
         ret, frame = cap.read()
         frame_disp = frame.copy()
-        template, appearance_features, search, seq_input = tracker.track(frame_disp)
-        # template, dz_feat, search, seq_input = tracker.preprocess_input(frame_disp)
+        template, appearance_features, search, seq_input = tracker.preprocess_input(frame)
 
         with torch.no_grad():
             device = 'cpu'
