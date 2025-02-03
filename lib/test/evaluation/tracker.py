@@ -292,7 +292,7 @@ class Tracker:
         # ------------
         print(f"{tracker.network.backbone.patch_embed=}")
         with torch.no_grad():
-            torch.onnx.report(model=tracker.network.backbone.patch_embed, args=template, f="PatchEmbed.onnx", verbose=True, opset_version=15)
+            torch.onnx.export(model=tracker.network.backbone.patch_embed, args=template, f="PatchEmbed.onnx", verbose=True, opset_version=15)
         # ------------
 
         with torch.no_grad():
