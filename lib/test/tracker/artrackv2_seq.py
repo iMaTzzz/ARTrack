@@ -58,8 +58,8 @@ class ARTrackV2Seq(BaseTracker):
             self.dz_feat = self.network.backbone.patch_embed(template)
             weight = self.network.backbone.patch_embed.proj.weight.data
             bias = self.network.backbone.patch_embed.proj.bias.data
-            print(f"{weight}")
-            print(f"{bias}")
+            # print(f"{weight}")
+            # print(f"{bias}")
 
         self.box_mask_z = None
 

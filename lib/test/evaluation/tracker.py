@@ -286,14 +286,18 @@ class Tracker:
         ret, frame = cap.read()
         frame_disp = frame.copy()
         template, appearance_features, search, seq_input = tracker.preprocess_input(frame)
+        device = 'cpu'
+        template = template.to(device).type(torch.FloatTensor)
 
         # ------------
         print(f"{tracker.network.backbone.patch_embed=}")
+        with torch.no_grad():
+            torch.onnx.report(model=tracker.network.backbone.patch_embed, args=template, f="PatchEmbed.onnx", verbose=True, opset_version=15)
         # ------------
 
         with torch.no_grad():
-            device = 'cpu'
-            template = template.to(device).type(torch.FloatTensor)
+            # device = 'cpu'
+            # template = template.to(device).type(torch.FloatTensor)
             appearance_features = appearance_features.to(device).type(torch.FloatTensor)
             search = search.to(device).type(torch.FloatTensor)
             seq_input = seq_input.to(device).type(torch.FloatTensor)
