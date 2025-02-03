@@ -358,8 +358,8 @@ class Tracker:
 
             # Prepare inputs for ONNX inference
             ort_inputs = {
-                'template': template.detach().cpu().numpy(),  # Detach before calling numpy()
-                'dz_feat.1': dz_feat.detach().cpu().numpy(),
+                'template': template.detach().cpu().numpy(),
+                'dz_feat': dz_feat.detach().cpu().numpy(),
                 'search': search.detach().cpu().numpy(),
                 'seq_input': seq_input.detach().cpu().numpy()
             }
