@@ -345,7 +345,8 @@ class Tracker:
         # Check the model (optional)
         onnx_model = onnx.load(input_onnx)
         onnx.checker.check_model(onnx_model)
-        ort_session = onnxruntime.InferenceSession(input_onnx)
+        providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']  # Try CUDA first, fall back to CPU if necessary
+        ort_session = onnxruntime.InferenceSession(input_onnx, providers=providers)
 
         total_time_ort = 0.0  # Initialize total time accumulator
         total_time_original = 0.0  # Initialize total time accumulator
