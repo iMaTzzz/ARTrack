@@ -295,11 +295,11 @@ class Tracker:
             search = search.to(device).type(torch.FloatTensor)
             seq_input = seq_input.to(device).type(torch.FloatTensor)
             dummy_input = (template, dz_feat, search, seq_input)
-            print(f"{template=}, {template.shape}")
-            print(f"{dz_feat=}, {dz_feat.shape}")
-            print(f"{search=}, {search.shape}")
-            print(f"{seq_input=}, {seq_input.shape}")
-            print(f"{dummy_input=}")
+            # print(f"{template=}, {template.shape}")
+            # print(f"{dz_feat=}, {dz_feat.shape}")
+            # print(f"{search=}, {search.shape}")
+            # print(f"{seq_input=}, {seq_input.shape}")
+            # print(f"{dummy_input=}")
             onnx_path = "tracking.onnx"
             # input_names = ['template', 'dz_feat', 'search', 'seq_input']
             # output_names = ['seqs', 'feat', 'x_feat', 'dz_feat']
