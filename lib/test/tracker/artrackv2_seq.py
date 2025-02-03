@@ -39,7 +39,6 @@ class ARTrackV2Seq(BaseTracker):
 
         self.frame_id = 0
         # for save boxes from all queries
-        self.z_dict1 = {}
         self.store_result = None
         self.prenum = params.cfg.MODEL.PRENUM
         self.range = params.cfg.MODEL.RANGE
@@ -50,14 +49,13 @@ class ARTrackV2Seq(BaseTracker):
         self.x_feat = None
         self.update_ = False
 
-        z_patch_arr, resize_factor, z_amask_arr = sample_target(image, info['init_bbox'], self.params.template_factor,
+        z_patch_arr, resize_factor, _ = sample_target(image, info['init_bbox'], self.params.template_factor,
                                                                 output_sz=self.params.template_size)  # output_sz=self.params.template_size
         self.z_patch_arr = z_patch_arr
-        template = self.preprocessor.process(z_patch_arr, z_amask_arr)
+        template = self.preprocessor.process(z_patch_arr)
         with torch.no_grad():
-            self.z_dict1 = template
-            self.z_dict2 = template
-            self.dz_feat = self.network.backbone.patch_embed(template.tensors)
+            self.template = template
+            self.dz_feat = self.network.backbone.patch_embed(template)
 
         self.box_mask_z = None
 
@@ -73,7 +71,7 @@ class ARTrackV2Seq(BaseTracker):
         tic = time.time()
         H, W, _ = image.shape
         self.frame_id += 1
-        x_patch_arr, resize_factor, x_amask_arr = sample_target(image, self.state, self.params.search_factor,
+        x_patch_arr, resize_factor, _ = sample_target(image, self.state, self.params.search_factor,
                                                                 output_sz=self.params.search_size)  # (x1, y1, w, h)
         for i in range(len(self.store_result)):
             box_temp = self.store_result[i].copy()
@@ -92,15 +90,14 @@ class ARTrackV2Seq(BaseTracker):
 
         seqs_out = seqs_out.unsqueeze(0)
 
-        search = self.preprocessor.process(x_patch_arr, x_amask_arr)
+        search = self.preprocessor.process(x_patch_arr)
 
         with torch.no_grad():
-            x_dict = search
             # merge the template and the search
             # run the transformer
-            template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
+            # template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
             out_dict = self.network.forward(
-                template=template, dz_feat=self.dz_feat, search=x_dict.tensors, seq_input=seqs_out)
+                template=self.template, dz_feat=self.dz_feat, search=search, seq_input=seqs_out)
 
         self.dz_feat = out_dict['dz_feat']
         self.x_feat = out_dict['x_feat']
@@ -181,7 +178,7 @@ class ARTrackV2Seq(BaseTracker):
     def preprocess_input(self, image):
         H, W, _ = image.shape
         self.frame_id += 1
-        x_patch_arr, resize_factor, x_amask_arr = sample_target(image, self.state, self.params.search_factor,
+        x_patch_arr, resize_factor, _ = sample_target(image, self.state, self.params.search_factor,
                                                                 output_sz=self.params.search_size)  # (x1, y1, w, h)
         if self.dz_feat == None:
             self.dz_feat = self.network.backbone.patch_embed(self.z_dict2.tensors)
