@@ -285,24 +285,24 @@ class Tracker:
         # Get dummy input on the next frame by using track method
         ret, frame = cap.read()
         frame_disp = frame.copy()
-        template, dz_feat, search, seq_input = tracker.track(frame_disp)
+        template, appearance_features, search, seq_input = tracker.track(frame_disp)
         # template, dz_feat, search, seq_input = tracker.preprocess_input(frame_disp)
 
         with torch.no_grad():
             device = 'cpu'
             template = template.to(device).type(torch.FloatTensor)
-            dz_feat = dz_feat.to(device).type(torch.FloatTensor)
+            appearance_features = appearance_features.to(device).type(torch.FloatTensor)
             search = search.to(device).type(torch.FloatTensor)
             seq_input = seq_input.to(device).type(torch.FloatTensor)
-            dummy_input = (template, dz_feat, search, seq_input)
+            dummy_input = (template, appearance_features, search, seq_input)
             print(f"{template.shape}")
-            print(f"{dz_feat.shape}")
+            print(f"{appearance_features.shape}")
             print(f"{search.shape}")
             print(f"{seq_input.shape}")
             # print(f"{dummy_input=}")
             onnx_path = "tracking.onnx"
-            input_names = ['template', 'dz_feat', 'search', 'seq_input']
-            output_names = ['predicted_tokens', 'sequence_scores', 'sequence_features', 'score', 'dz_feat']
+            input_names = ['template', 'appearance_features', 'search', 'seq_input']
+            output_names = ['predicted_tokens', 'sequence_scores', 'sequence_features', 'score', 'refined_appearance_features']
             print('\n Exporting................... \n')
             torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names, opset_version=15)
 

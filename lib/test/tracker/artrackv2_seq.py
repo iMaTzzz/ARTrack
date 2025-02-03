@@ -92,14 +92,16 @@ class ARTrackV2Seq(BaseTracker):
 
         search = self.preprocessor.process(x_patch_arr)
 
+        return self.template, self.dz_feat, search, seqs_out
+
         with torch.no_grad():
             # merge the template and the search
             # run the transformer
             # template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
             out_dict = self.network.forward(
-                template=self.template, dz_feat=self.dz_feat, search=search, seq_input=seqs_out)
+                template=self.template, appearance_features=self.dz_feat, search=search, seq_input=seqs_out)
 
-        self.dz_feat = out_dict['dz_feat']
+        self.dz_feat = out_dict['refined_appearance_features']
         # self.x_feat = out_dict['x_feat']
 
         pred_boxes = (out_dict['predicted_tokens'][:, 0:4] + 0.5) / (self.bins - 1) - 0.5

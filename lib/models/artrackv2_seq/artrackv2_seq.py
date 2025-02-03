@@ -42,11 +42,11 @@ class ARTrackV2Seq(nn.Module):
         self.cross_2_decoder = cross_2_decoder
 
     def forward(self, template: torch.Tensor,
-                dz_feat: torch.Tensor,
+                appearance_features: torch.Tensor,
                 search: torch.Tensor,
                 seq_input: torch.Tensor,
                 ):
-        out, z_1_feat, score_feat = self.backbone(z_0=template, z_1_feat=dz_feat, x=search, identity=self.identity, seqs_input=seq_input)
+        out, z_1_feat, score_feat = self.backbone(z_0=template, z_1_feat=appearance_features, x=search, identity=self.identity, seqs_input=seq_input)
 
         # seq_feat = out['seq_feat'].permute(1, 0 ,2)
         # pos = self.backbone.position_embeddings.weight.unsqueeze(0).repeat(seq_feat.shape[1], 1, 1).permute(1, 0 ,2)
@@ -59,7 +59,7 @@ class ARTrackV2Seq(nn.Module):
                                     z_1_feat.shape[2]).permute(0, 3, 1, 2)
         update_feat = self.cross_2_decoder(z_1_feat, eval=True)
         update_feat = self.cross_2_decoder.patchify(update_feat)
-        out['dz_feat'] = update_feat
+        out['refined_appearance_features'] = update_feat
 
         return out
 
