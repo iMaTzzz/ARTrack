@@ -92,6 +92,8 @@ class ARTrackV2Seq(BaseTracker):
 
         search = self.preprocessor.process(x_patch_arr)
 
+        return self.template, self.dz_feat, search, seqs_out
+
         with torch.no_grad():
             # merge the template and the search
             # run the transformer
