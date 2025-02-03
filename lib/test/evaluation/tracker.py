@@ -199,12 +199,6 @@ class Tracker:
         tracker.initialize(frame, _build_init_info(bbox_path))
         output_boxes.append(bbox_path)
 
-        print("testing in run_video")
-        template, appearance_features, search, seq_input = tracker.preprocess_input(frame)
-
-        original_outputs = tracker.network.forward(template, appearance_features, search, seq_input)
-        print("finish testing in run_video")
-
         # Process the video frame by frame
         frame_number = 1
         total_time = 0
@@ -374,7 +368,9 @@ class Tracker:
             inference_time_ort = time.time() - tic  # Calculate the time taken for this frame
 
             tic = time.time()
-            original_outputs = tracker_test.network.forward(template, appearance_features, search, seq_input)
+
+            with torch.no_grad():
+                original_outputs = tracker_test.network.forward(template, appearance_features, search, seq_input)
             inference_time_original = time.time() - tic  # Calculate the time taken for this frame
             
             total_time_ort += inference_time_ort  # Accumulate the inference time
