@@ -57,7 +57,7 @@ class ARTrackV2Seq(BaseTracker):
         with torch.no_grad():
             self.z_dict1 = template
             self.z_dict2 = template
-            self.dz_feat = self.network.backbone.patch_embed(z_patch_arr)
+            self.dz_feat = self.network.backbone.patch_embed(template.tensors)
 
         self.box_mask_z = None
 
