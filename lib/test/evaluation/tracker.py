@@ -379,7 +379,7 @@ class Tracker:
 
             # Optionally, print results for this frame (for debugging)
             print(f"Frame {frame_count}: Onnx inference took {inference_time_ort:.4f} seconds vs Original inference took {inference_time_original:.4f} seconds")
-            print(f"Test Output Seqs: {original_outputs['seqs']} vs ONNX Output: {ort_outputs[0]}")
+            print(f"Test Output Seqs: {original_outputs['predicted_tokens']} vs ONNX Output: {ort_outputs[0]}")
         
         # After processing all frames, print the total time
         print(f"Total time for {frame_count} frames: Onnx: {total_time_ort:.4f} seconds vs Original: {total_time_original:.4f}")
