@@ -50,6 +50,8 @@ class ARTrackV2Seq(BaseTracker):
                 # self.add_hook()
                 self._init_visdom(None, 1)
         # for save boxes from all queries
+        print(f"{params=}")
+        print(f"{params.save_all_boxes=}")
         self.save_all_boxes = params.save_all_boxes
         self.z_dict1 = {}
         self.store_result = None
