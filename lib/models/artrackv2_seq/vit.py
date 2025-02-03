@@ -148,6 +148,11 @@ class VisionTransformer(BaseBackbone):
 
         self.patch_embed = embed_layer(
             img_size=img_size, patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim)
+        print(f"img_size: {img_size}")
+        print(f"patch_size: {patch_size}")
+        print(f"in_chans: {in_chans}")
+        print(f"embed_dim: {embed_dim}")
+
         num_patches = self.patch_embed.num_patches
 
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
