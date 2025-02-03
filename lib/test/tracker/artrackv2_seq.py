@@ -79,12 +79,8 @@ class ARTrackV2Seq(BaseTracker):
         for i in range(self.prenum - 1):
             self.store_result.append(info['init_bbox'].copy())
         self.frame_id = 0
-        if self.save_all_boxes:
-            '''save all predicted boxes'''
-            all_boxes_save = info['init_bbox'] * self.cfg.MODEL.NUM_OBJECT_QUERIES
-            return {"all_boxes": all_boxes_save}
 
-    def track(self, image, info: dict = None):
+    def track(self, image):
         # Time initialization
         tic = time.time()
         H, W, _ = image.shape
@@ -116,10 +112,7 @@ class ARTrackV2Seq(BaseTracker):
             x_dict = search
             # merge the template and the search
             # run the transformer
-            if self.update_:
-                template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.unsqueeze(1)], dim=1)
-            else:
-                template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
+            template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
             out_dict = self.network.forward(
                 template=template, dz_feat=self.dz_feat, search=x_dict.tensors, seq_input=seqs_out)
 
@@ -236,10 +229,7 @@ class ARTrackV2Seq(BaseTracker):
             x_dict = search
             # merge the template and the search
             # run the transformer
-            if self.update_:
-                template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.unsqueeze(1)], dim=1)
-            else:
-                template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
+            template = torch.concat([self.z_dict1.tensors.unsqueeze(1), self.z_dict2.tensors.unsqueeze(1)], dim=1)
         print(f"template={template}, dz_feat={self.dz_feat}, x_dict.tensors={x_dict.tensors}, seqs_out={seqs_out}")
         return template, self.dz_feat, x_dict.tensors, seqs_out
 

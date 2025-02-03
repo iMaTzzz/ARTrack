@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     vim \
     libgl1-mesa-glx \
     git \
+    cuda-toolkit-11-3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Miniconda

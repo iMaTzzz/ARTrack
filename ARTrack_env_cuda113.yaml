@@ -462,7 +462,7 @@ dependencies:
     - wandb==0.12.11
     - webcolors==1.12
     - yaspin==2.1.0
-    - onnxruntime
+    - onnxruntime-gpu
     - onnx
 prefix: /public/baiyifan/conda_envs/artrack
 

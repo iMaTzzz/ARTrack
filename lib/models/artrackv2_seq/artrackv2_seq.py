@@ -35,8 +35,8 @@ class ARTrackV2Seq(nn.Module):
         super().__init__()
         self.backbone = transformer
         self.score_mlp = score_mlp
-        print(transformer)
-        print(score_mlp)
+        print(f"{transformer=}")
+        print(f"{score_mlp=}")
 
         self.identity = torch.nn.Parameter(torch.zeros(1, 3, 768))
         self.identity = trunc_normal_(self.identity, std=.02)
