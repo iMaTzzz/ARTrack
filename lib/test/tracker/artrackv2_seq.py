@@ -143,8 +143,10 @@ class ARTrackV2Seq(BaseTracker):
 
 
         pred_boxes = (ans + pred_boxes) / 2
+        print(f"Shape of pred_boxes after ans+pred_boxes / 2: {pred_boxes.shape}")
 
         pred_boxes = pred_boxes.view(-1, 4).mean(dim=0)
+        print(f"Shape of pred_boxes after view+mean: {pred_boxes.shape}")
 
         pred_new = pred_boxes
         pred_new[2] = pred_boxes[2] - pred_boxes[0]
