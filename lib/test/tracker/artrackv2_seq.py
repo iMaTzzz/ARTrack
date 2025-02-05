@@ -123,10 +123,18 @@ class ARTrackV2Seq(BaseTracker):
         print(f"End value: {end_value}")
         print(f"Step value: {step_value}")
         mul = torch.range((-1 * self.range * 0.5 + 0.5) + 1 / (self.bins * self.range), (self.range * 0.5 + 0.5) - 1 / (self.bins * self.range), 2 / (self.bins * self.range)).to(pred)
+        print(f"Shape of mul: {mul.shape}")
 
+        print(f"Shape of out: {out.shape}")
         ans = out * mul
+        print(f"Shape of ans after multiplication (out * mul): {ans.shape}")
+
         ans = ans.sum(dim=-1)
+        print(f"Shape of ans after sum(dim=-1): {ans.shape}")
+
         ans = ans.permute(1, 0).to(pred)
+        print(f"Shape of ans after permute(1, 0).to(pred): {ans.shape}")
+
 
         pred_boxes = (ans + pred_boxes) / 2
 
