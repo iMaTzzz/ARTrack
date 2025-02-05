@@ -111,8 +111,9 @@ class ARTrackV2Seq(BaseTracker):
         pred_feat = out_dict['sequence_features']
         print(f"Sequence features shape: {pred_feat.shape}")
 
-        pred = pred_feat.permute(1, 0, 2).reshape(-1, self.bins * self.range + 6)
-        print(f"After premute and reshape: {pred.shape}")
+        # These are useless
+        # pred = pred_feat.permute(1, 0, 2).reshape(-1, self.bins * self.range + 6)
+        # print(f"After premute and reshape: {pred.shape}")
 
         pred = pred_feat[0:4, :, 0:self.bins * self.range]
         print(f"After slicing: {pred.shape}")
