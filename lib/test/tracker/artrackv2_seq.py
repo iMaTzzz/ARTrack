@@ -114,6 +114,14 @@ class ARTrackV2Seq(BaseTracker):
         pred = pred_feat[0:4, :, 0:self.bins * self.range]
 
         out = pred.softmax(-1).to(pred)
+        start_value = (-1 * self.range * 0.5 + 0.5) + 1 / (self.bins * self.range)
+        end_value = (self.range * 0.5 + 0.5) - 1 / (self.bins * self.range)
+        step_value = 2 / (self.bins * self.range)
+
+        # Print the components
+        print(f"Start value: {start_value}")
+        print(f"End value: {end_value}")
+        print(f"Step value: {step_value}")
         mul = torch.range((-1 * self.range * 0.5 + 0.5) + 1 / (self.bins * self.range), (self.range * 0.5 + 0.5) - 1 / (self.bins * self.range), 2 / (self.bins * self.range)).to(pred)
 
         ans = out * mul
