@@ -107,6 +107,7 @@ class ARTrackV2Seq(BaseTracker):
         # self.x_feat = out_dict['x_feat']
 
         pred_boxes = (out_dict['predicted_tokens'][:, 0:4] + 0.5) / (self.bins - 1) - 0.5
+        print(f"Predicted tokens shape after small calculations: {pred_boxes.shape}")
 
         pred_feat = out_dict['sequence_features']
         print(f"Sequence features shape: {pred_feat.shape}")
