@@ -109,11 +109,16 @@ class ARTrackV2Seq(BaseTracker):
         pred_boxes = (out_dict['predicted_tokens'][:, 0:4] + 0.5) / (self.bins - 1) - 0.5
 
         pred_feat = out_dict['sequence_features']
+        print(f"Sequence features shape: {pred_feat.shape}")
+
         pred = pred_feat.permute(1, 0, 2).reshape(-1, self.bins * self.range + 6)
+        print(f"After premute and reshape: {pred.shape}")
 
         pred = pred_feat[0:4, :, 0:self.bins * self.range]
+        print(f"After slicing: {pred.shape}")
 
         out = pred.softmax(-1).to(pred)
+        print(f"Shape of out: {out.shape}")
         start_value = (-1 * self.range * 0.5 + 0.5) + 1 / (self.bins * self.range)
         end_value = (self.range * 0.5 + 0.5) - 1 / (self.bins * self.range)
         step_value = 2 / (self.bins * self.range)
@@ -125,7 +130,6 @@ class ARTrackV2Seq(BaseTracker):
         mul = torch.range((-1 * self.range * 0.5 + 0.5) + 1 / (self.bins * self.range), (self.range * 0.5 + 0.5) - 1 / (self.bins * self.range), 2 / (self.bins * self.range)).to(pred)
         print(f"Shape of mul: {mul.shape}")
 
-        print(f"Shape of out: {out.shape}")
         ans = out * mul
         print(f"Shape of ans after multiplication (out * mul): {ans.shape}")
 
