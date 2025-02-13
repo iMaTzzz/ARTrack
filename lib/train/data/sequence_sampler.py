@@ -79,6 +79,7 @@ class SequenceSampler(torch.utils.data.Dataset):
         # Sample frames in sequential manner
         template_frame_ids = self._sample_visible_ids(visible, num_ids=1, min_id=0,
                                                    max_id=len(visible) - self.num_search_frames)
+        
         if self.max_gap == -1:
             left = template_frame_ids[0]
         else:

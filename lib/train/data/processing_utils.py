@@ -46,8 +46,8 @@ def sample_target(im, target_bb, search_area_factor, output_sz=None, mask=None):
 
     # Crop target
     im_crop = im[y1 + y1_pad:y2 - y2_pad, x1 + x1_pad:x2 - x2_pad, :]
-    if mask is not None:
-        mask_crop = mask[y1 + y1_pad:y2 - y2_pad, x1 + x1_pad:x2 - x2_pad]
+    # if mask is not None:
+        # mask_crop = mask[y1 + y1_pad:y2 - y2_pad, x1 + x1_pad:x2 - x2_pad]
 
     # Pad
     im_crop_padded = cv.copyMakeBorder(im_crop, y1_pad, y2_pad, x1_pad, x2_pad, cv.BORDER_CONSTANT)
@@ -60,8 +60,8 @@ def sample_target(im, target_bb, search_area_factor, output_sz=None, mask=None):
     if x2_pad == 0:
         end_x = None
     att_mask[y1_pad:end_y, x1_pad:end_x] = 0
-    if mask is not None:
-        mask_crop_padded = F.pad(mask_crop, pad=(x1_pad, x2_pad, y1_pad, y2_pad), mode='constant', value=0)
+    #if mask is not None:
+        #mask_crop_padded = F.pad(mask_crop, pad=(x1_pad, x2_pad, y1_pad, y2_pad), mode='constant', value=0)
 
     if output_sz is not None:
         resize_factor = output_sz / crop_sz
@@ -73,10 +73,10 @@ def sample_target(im, target_bb, search_area_factor, output_sz=None, mask=None):
         F.interpolate(mask_crop_padded[None, None], (output_sz, output_sz), mode='bilinear', align_corners=False)[0, 0]
         return im_crop_padded, resize_factor, att_mask, mask_crop_padded
 
-    else:
-        if mask is None:
-            return im_crop_padded, att_mask.astype(np.bool_), 1.0
-        return im_crop_padded, 1.0, att_mask.astype(np.bool_), mask_crop_padded
+#    else:
+        #if mask is None:
+            #return im_crop_padded, att_mask.astype(np.bool_), 1.0
+        #return im_crop_padded, 1.0, att_mask.astype(np.bool_), mask_crop_padded
 
 
 def transform_image_to_crop(box_in: torch.Tensor, box_extract: torch.Tensor, resize_factor: float,

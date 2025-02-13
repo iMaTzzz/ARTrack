@@ -8,6 +8,10 @@ import cv2 as cv
 from lib.utils.lmdb_utils import decode_img
 from pathlib import Path
 import numpy as np
+import torch
+import onnxruntime
+import onnx
+from lib.train.data.processing_utils import sample_target, transform_image_to_crop
 
 
 def trackerlist(name: str, parameter_name: str, dataset_name: str, run_ids = None, display_name: str = None,
@@ -33,20 +37,13 @@ class Tracker:
         display_name: Name to be displayed in the result plots.
     """
 
-    def __init__(self, name: str, parameter_name: str, run_id: int = None, display_name: str = None):
-        assert run_id is None or isinstance(run_id, int)
-
+    def __init__(self, name: str, parameter_name: str, display_name: str = None):
         self.name = name
         self.parameter_name = parameter_name
-        self.run_id = run_id
         self.display_name = display_name
 
         env = env_settings()
-        if self.run_id is None:
-            self.results_dir = '{}/{}/{}'.format(env.results_path, self.name, self.parameter_name)
-        else:
-            self.results_dir = '{}/{}/{}_{:03d}'.format(env.results_path, self.name, self.parameter_name, self.run_id)
-
+        self.results_dir = '{}/{}/{}'.format(env.results_path, self.name, self.parameter_name)
         tracker_module_abspath = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                               '..', 'tracker', '%s.py' % self.name))
         if os.path.isfile(tracker_module_abspath):
@@ -147,7 +144,7 @@ class Tracker:
 
         return output
 
-    def run_video(self, input_video, output_video, bbox_path=None, debug=None, visdom_info=None, save_results=False):
+    def run_video(self, input_video, output_video, bbox_path, debug=None, save_results=False):
         """Run the tracker with the videofile.
         args:
             debug: Debug level.
@@ -162,78 +159,56 @@ class Tracker:
 
         params.tracker_name = self.name
         params.param_name = self.parameter_name
-        # self._init_visdom(visdom_info, debug_)
 
         multiobj_mode = getattr(params, 'multiobj_mode', getattr(self.tracker_class, 'multiobj_mode', 'default'))
 
         if multiobj_mode == 'default':
             tracker = self.create_tracker(params)
-
-        elif multiobj_mode == 'parallel':
-            tracker = MultiObjectWrapper(self.tracker_class, params, self.visdom, fast_load=True)
         else:
-            raise ValueError('Unknown multi object mode {}'.format(multiobj_mode))
+            raise ValueError(f"Unknown multi object mode {multiobj_mode}")
 
-        assert os.path.isfile(input_video), "Invalid param {}".format(input_video)
-        ", input_video must be a valid videofile"
+        # Ensure input video is valid
+        assert os.path.isfile(input_video), f"Invalid input video file: {input_video}"
+        assert bbox_path is not None and len(bbox_path) == 4, "bbox_path must be a valid list or tuple in [x, y, w, h] format."
 
+        # Prepare the output list for bounding boxes
         output_boxes = []
 
+        # Open video file
         cap = cv.VideoCapture(input_video)
         # Get video properties
         fps = cap.get(cv.CAP_PROP_FPS)
         width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
         total_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+
         # Start writing video output
         if output_video is not None:
             fourcc = cv.VideoWriter_fourcc(*'mp4v')  # Codec for the output video
             output = cv.VideoWriter(output_video, fourcc, fps, (width, height))
 
-        display_name = 'Display: ' + tracker.params.tracker_name
-        cv.namedWindow(display_name, cv.WINDOW_NORMAL | cv.WINDOW_KEEPRATIO)
-        cv.resizeWindow(display_name, 960, 720)
+        # Initialize tracker with the first frame and bounding box
         success, frame = cap.read()
-        cv.imshow(display_name, frame)
+        if not success:
+            print(f"Failed to read the first frame from {input_video}.")
+            return
 
         def _build_init_info(box):
             return {'init_bbox': box}
 
-        if success is not True:
-            print("Read frame from {} failed.".format(input_video))
-            exit(-1)
-        if bbox_path is not None:
-            assert isinstance(bbox_path, (list, tuple))
-            assert len(bbox_path) == 4, "valid box's foramt is [x,y,w,h]"
-            tracker.initialize(frame, _build_init_info(bbox_path))
-            output_boxes.append(bbox_path)
-        else:
-            while True:
-                # cv.waitKey()
-                frame_disp = frame.copy()
+        tracker.initialize(frame, _build_init_info(bbox_path))
+        output_boxes.append(bbox_path)
 
-                cv.putText(frame_disp, 'Select target ROI and press ENTER', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL,
-                           1.5, (0, 0, 0), 1)
-
-                x, y, w, h = cv.selectROI(display_name, frame_disp, fromCenter=False)
-                init_state = [x, y, w, h]
-                tracker.initialize(frame, _build_init_info(init_state))
-                output_boxes.append(init_state)
-                break
-            if output_video is not None:
-                output.write(frame_disp)
-        cv.destroyAllWindows()
-
+        # Process the video frame by frame
         frame_number = 1
         total_time = 0
         while True:
             ret, frame = cap.read()
-            if frame is None:
-                break
+            if not ret:
+                break  # Exit the loop if no more frames are available
             frame_number += 1
-            frame_disp = frame.copy()
 
-            # Draw box
+            # Track the object
             out = tracker.track(frame)
             state = [int(s) for s in out['target_bbox']]
             output_boxes.append(state)
@@ -241,54 +216,30 @@ class Tracker:
             total_time += inference_time
             print(f"Inference time for frame {frame_number}/{total_frames}: {inference_time:.4f} seconds")
 
-            cv.rectangle(frame_disp, (state[0], state[1]), (state[2] + state[0], state[3] + state[1]),
-                         (0, 255, 0), 5)
+            # Draw bounding box on the frame
+            cv.rectangle(frame, (state[0], state[1]), (state[0] + state[2], state[1] + state[3]), (0, 255, 0), 2)
 
-            # font_color = (0, 0, 0)
-            # cv.putText(frame_disp, 'Tracking!', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       # font_color, 1)
-            # cv.putText(frame_disp, 'Press r to reset', (20, 55), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       # font_color, 1)
-            # cv.putText(frame_disp, 'Press q to quit', (20, 80), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       # font_color, 1)
-
-            # # Display the resulting frame
-            # cv.imshow(display_name, frame_disp)
-            # key = cv.waitKey(1)
-            # if key == ord('q'):
-                # break
-            # elif key == ord('r'):
-                # ret, frame = cap.read()
-                # frame_disp = frame.copy()
-
-                # cv.putText(frame_disp, 'Select target ROI and press ENTER', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.5,
-                           # (0, 0, 0), 1)
-
-                # cv.imshow(display_name, frame_disp)
-                # x, y, w, h = cv.selectROI(display_name, frame_disp, fromCenter=False)
-                # init_state = [x, y, w, h]
-                # tracker.initialize(frame, _build_init_info(init_state))
-                # output_boxes.append(init_state)
-            # Save frame with predictions
+            # Write the frame to the output video file
             if output_video is not None:
-                output.write(frame_disp)
+                output.write(frame)
+
         print(f"Total time taken: {total_time:.2f} seconds")
         print(f"Overall FPS: {total_frames / total_time:.2f}")
 
-        # When everything done, release the capture
+        # Release resources
         cap.release()
-        cv.destroyAllWindows()
+        if output_video is not None:
+            output.release()
 
         if save_results:
             if not os.path.exists(self.results_dir):
                 os.makedirs(self.results_dir)
             video_name = Path(input_video).stem
-            base_results_path = os.path.join(self.results_dir, 'video_{}'.format(video_name))
+            base_results_path = os.path.join(self.results_dir, f"video_{video_name}")
 
             tracked_bb = np.array(output_boxes).astype(int)
-            bbox_file = '{}.txt'.format(base_results_path)
+            bbox_file = f"{base_results_path}.txt"
             np.savetxt(bbox_file, tracked_bb, delimiter='\t', fmt='%d')
-
 
     def get_parameters(self):
         """Get parameters."""
@@ -315,105 +266,137 @@ class Tracker:
 
         params.tracker_name = self.name
         params.param_name = self.parameter_name
-        # self._init_visdom(visdom_info, debug_)
         params.debug = getattr(params, 'debug', 0)
 
+        # Create tracker
         tracker = self.create_tracker(params)
 
-        output_boxes = []
+        # Read video and get first frame
+        cap = cv.VideoCapture(input_video)
+        success, frame = cap.read()
 
-        def _build_init_info(box):
-            return {'init_bbox': box}
+        # Initialize tracker
+        init_bbox = {'init_bbox': init_bbox}
+        tracker.initialize(frame, init_bbox)
 
-        if success is not True:
-            print("Read frame from {} failed.".format(input_video))
-            exit(-1)
-        if bbox_path is not None:
-            assert isinstance(bbox_path, (list, tuple))
-            assert len(bbox_path) == 4, "valid box's foramt is [x,y,w,h]"
-            tracker.initialize(frame, _build_init_info(bbox_path))
-            output_boxes.append(bbox_path)
-        else:
-            while True:
-                # cv.waitKey()
-                frame_disp = frame.copy()
+        # Get model we want to export
+        model = tracker.network
 
-                cv.putText(frame_disp, 'Select target ROI and press ENTER', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL,
-                           1.5, (0, 0, 0), 1)
+        # Get dummy input on the next frame by using track method
+        ret, frame = cap.read()
+        frame_disp = frame.copy()
+        template, appearance_features, search, seq_input = tracker.preprocess_input(frame)
+        device = 'cpu'
+        template = template.to(device).type(torch.FloatTensor)
 
-                x, y, w, h = cv.selectROI(display_name, frame_disp, fromCenter=False)
-                init_state = [x, y, w, h]
-                tracker.initialize(frame, _build_init_info(init_state))
-                output_boxes.append(init_state)
-                break
-            if output_video is not None:
-                output.write(frame_disp)
-        cv.destroyAllWindows()
+        # ------------
+        print(f"{tracker.network.backbone.patch_embed=}")
+        with torch.no_grad():
+            torch.onnx.export(model=tracker.network.backbone.patch_embed, args=template, f="PatchEmbed.onnx", input_names=["template"], output_names=["sequence_features"], verbose=True, opset_version=15)
+        # ------------
 
-        frame_number = 1
-        total_time = 0
+        with torch.no_grad():
+            # device = 'cpu'
+            # template = template.to(device).type(torch.FloatTensor)
+            appearance_features = appearance_features.to(device).type(torch.FloatTensor)
+            search = search.to(device).type(torch.FloatTensor)
+            seq_input = seq_input.to(device).type(torch.FloatTensor)
+            dummy_input = (template, appearance_features, search, seq_input)
+            print(f"{template.shape}")
+            print(f"{appearance_features.shape}")
+            print(f"{search.shape}")
+            print(f"{seq_input.shape}")
+            # print(f"{dummy_input=}")
+            onnx_path = "tracking.onnx"
+            input_names = ['template', 'appearance_features', 'search', 'seq_input']
+            output_names = ['predicted_tokens', 'sequence_scores', 'sequence_features', 'score', 'refined_appearance_features']
+            print('\n Exporting................... \n')
+            torch.onnx.export(model=model, args=dummy_input, f=onnx_path, verbose=True, input_names=input_names, output_names=output_names, opset_version=15)
+
+    def run_onnx(self, input_video, init_bbox, input_onnx):
+        """Run the tracker with the video file and sum the inference time for each frame.
+        args:
+            input_video
+            init_bbox
+            input_onnx
+        """
+        
+        params = self.get_parameters()
+
+        params.tracker_name = self.name
+        params.param_name = self.parameter_name
+        params.debug = getattr(params, 'debug', 0)
+
+        # Create two trackers for comparing results between pytorch model and onnx model
+        tracker_test = self.create_tracker(params)
+        tracker_onnx = self.create_tracker(params)
+
+        # Read video and get first frame
+        cap = cv.VideoCapture(input_video)
+        if not cap.isOpened():
+            raise ValueError("Unable to open video file")
+
+        # Initialize trackers
+        init_bbox = {'init_bbox': init_bbox}
+        ret, frame = cap.read()  # Read the first frame
+        if not ret:
+            raise ValueError("Unable to read the first frame from the video")
+        
+        tracker_test.initialize(frame, init_bbox)
+        tracker_onnx.initialize(frame, init_bbox)
+
+        # Get pre-processed input for the ONNX model
+        template, appearance_features, search, seq_input = tracker_onnx.preprocess_input(frame)
+        providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']  # Try CUDA first, fall back to CPU if necessary
+
+        ort_session_patch = onnxruntime.InferenceSession("PatchEmbed.onnx", providers=providers)
+        ort_patch_input = {
+            'template': template.detach().cpu().numpy()
+        }
+        patchEmbedOutput = ort_session_patch.run(None, ort_patch_input)
+        print(f"{tracker_onnx.dz_feat=}")
+        print(f"{patchEmbedOutput[0]=}")
+
+        # Check the model (optional)
+        onnx_model = onnx.load(input_onnx)
+        onnx.checker.check_model(onnx_model)
+        ort_session = onnxruntime.InferenceSession(input_onnx, providers=providers)
+
+        total_time_ort = 0.0  # Initialize total time accumulator
+        total_time_original = 0.0  # Initialize total time accumulator
+        frame_count = 0  # Initialize frame count
+        
         while True:
-            ret, frame = cap.read()
-            if frame is None:
-                break
-            frame_number += 1
-            frame_disp = frame.copy()
+            ret, frame = cap.read()  # Read the next frame
+            if not ret:
+                break  # Exit the loop when the video ends
 
-            # Draw box
-            out = tracker.track(frame)
-            state = [int(s) for s in out['target_bbox']]
-            output_boxes.append(state)
-            inference_time = out['time']
-            total_time += inference_time
-            print(f"Inference time for frame {frame_number}/{total_frames}: {inference_time:.4f} seconds")
+            # Prepare inputs for ONNX inference
+            ort_inputs = {
+                'template': template.detach().cpu().numpy(),
+                'appearance_features': appearance_features.detach().cpu().numpy(),
+                'search': search.detach().cpu().numpy(),
+                'seq_input': seq_input.detach().cpu().numpy()
+            }
 
-            cv.rectangle(frame_disp, (state[0], state[1]), (state[2] + state[0], state[3] + state[1]),
-                         (0, 255, 0), 5)
+            tic = time.time()  # Start timing inference
+            ort_outputs = ort_session.run(None, ort_inputs)
+            inference_time_ort = time.time() - tic  # Calculate the time taken for this frame
 
-            # font_color = (0, 0, 0)
-            # cv.putText(frame_disp, 'Tracking!', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       # font_color, 1)
-            # cv.putText(frame_disp, 'Press r to reset', (20, 55), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       # font_color, 1)
-            # cv.putText(frame_disp, 'Press q to quit', (20, 80), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       # font_color, 1)
+            tic = time.time()
 
-            # # Display the resulting frame
-            # cv.imshow(display_name, frame_disp)
-            # key = cv.waitKey(1)
-            # if key == ord('q'):
-                # break
-            # elif key == ord('r'):
-                # ret, frame = cap.read()
-                # frame_disp = frame.copy()
+            with torch.no_grad():
+                original_outputs = tracker_test.network.forward(template, appearance_features, search, seq_input)
+            inference_time_original = time.time() - tic  # Calculate the time taken for this frame
+            
+            total_time_ort += inference_time_ort  # Accumulate the inference time
+            total_time_original += inference_time_original
+            frame_count += 1  # Increment the frame count
 
-                # cv.putText(frame_disp, 'Select target ROI and press ENTER', (20, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1.5,
-                           # (0, 0, 0), 1)
-
-                # cv.imshow(display_name, frame_disp)
-                # x, y, w, h = cv.selectROI(display_name, frame_disp, fromCenter=False)
-                # init_state = [x, y, w, h]
-                # tracker.initialize(frame, _build_init_info(init_state))
-                # output_boxes.append(init_state)
-            # Save frame with predictions
-            if output_video is not None:
-                output.write(frame_disp)
-        print(f"Total time taken: {total_time:.2f} seconds")
-        print(f"Overall FPS: {total_frames / total_time:.2f}")
-
-        # When everything done, release the capture
-        cap.release()
-        cv.destroyAllWindows()
-
-        if save_results:
-            if not os.path.exists(self.results_dir):
-                os.makedirs(self.results_dir)
-            video_name = Path(input_video).stem
-            base_results_path = os.path.join(self.results_dir, 'video_{}'.format(video_name))
-
-            tracked_bb = np.array(output_boxes).astype(int)
-            bbox_file = '{}.txt'.format(base_results_path)
-            np.savetxt(bbox_file, tracked_bb, delimiter='\t', fmt='%d')
-
-
-
+            # Optionally, print results for this frame (for debugging)
+            print(f"Frame {frame_count}: Onnx inference took {inference_time_ort:.4f} seconds vs Original inference took {inference_time_original:.4f} seconds")
+            print(f"Test Output Seqs: {original_outputs['predicted_tokens']} vs ONNX Output: {ort_outputs[0]}")
+        
+        # After processing all frames, print the total time
+        print(f"Total time for {frame_count} frames: Onnx: {total_time_ort:.4f} seconds vs Original: {total_time_original:.4f}")
+        print(f"Average inference time per frame: Onnx: {total_time_ort / frame_count:.4f} seconds vs Original : {total_time_original / frame_count:.4f}")

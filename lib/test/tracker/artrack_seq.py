@@ -21,18 +21,19 @@ class ARTrackSeq(BaseTracker):
     def __init__(self, params):
         super(ARTrackSeq, self).__init__(params)
         network = build_artrack_seq(params.cfg, training=False)
-        print(self.params.checkpoint)
         network.load_state_dict(torch.load(self.params.checkpoint, map_location='cpu')['net'], strict=True)
         self.cfg = params.cfg
         self.bins = self.cfg.MODEL.BINS
-        self.network = network.cuda()
+        # self.network = network.cuda()
+        self.network = network
         self.network.eval()
         self.preprocessor = Preprocessor()
         self.state = None
 
         self.feat_sz = self.cfg.TEST.SEARCH_SIZE // self.cfg.MODEL.BACKBONE.STRIDE
         # motion constrain
-        self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True).cuda()
+        # self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True).cuda()
+        self.output_window = hann2d(torch.tensor([self.feat_sz, self.feat_sz]).long(), centered=True)
 
         # for debug
         self.debug = params.debug
@@ -80,10 +81,6 @@ class ARTrackSeq(BaseTracker):
             self.store_result.append(info['init_bbox'].copy())
         self.frame_id = 0
         self.update = None
-        if self.save_all_boxes:
-            '''save all predicted boxes'''
-            all_boxes_save = info['init_bbox'] * self.cfg.MODEL.NUM_OBJECT_QUERIES
-            return {"all_boxes": all_boxes_save}
 
     def track(self, image, info: dict = None):
         # Time initialization
@@ -112,9 +109,13 @@ class ARTrackSeq(BaseTracker):
             x_dict = search
             # merge the template and the search
             # run the transformer
+            print(f"template={self.z_dict1.tensors}")
+            print(f"search={x_dict.tensors}")
+            print(f"seq_input={seqs_out}")
             out_dict = self.network.forward(
                 template=self.z_dict1.tensors, search=x_dict.tensors,
-                seq_input=seqs_out, stage="sequence", search_feature=self.x_feat, update=None)
+                seq_input=seqs_out, stage="sequence")
+            print(f"{out_dict=}")
 
         self.x_feat = out_dict['x_feat']
 
@@ -211,6 +212,33 @@ class ARTrackSeq(BaseTracker):
 
         self.enc_attn_weights = enc_attn_weights
 
+    def get_network(self):
+        return self.network
+
+    def preprocess_input(self, image):
+        H, W, _ = image.shape
+        self.frame_id += 1
+        x_patch_arr, resize_factor, x_amask_arr = sample_target(image, self.state, self.params.search_factor,
+                                                                output_sz=self.params.search_size)  # (x1, y1, w, h)
+        for i in range(len(self.store_result)):
+            box_temp = self.store_result[i].copy()
+            box_out_i = transform_image_to_crop(torch.Tensor(self.store_result[i]), torch.Tensor(self.state),
+                                                resize_factor,
+                                                torch.Tensor([self.cfg.TEST.SEARCH_SIZE, self.cfg.TEST.SEARCH_SIZE]),
+                                                normalize=True)
+            box_out_i[2] = box_out_i[2] + box_out_i[0]
+            box_out_i[3] = box_out_i[3] + box_out_i[1]
+            box_out_i = box_out_i.clamp(min=-0.5, max=1.5)
+            box_out_i = (box_out_i + 0.5) * (self.bins - 1)
+            if i == 0:
+                seqs_out = box_out_i
+            else:
+                seqs_out = torch.cat((seqs_out, box_out_i), dim=-1)
+        seqs_out = seqs_out.unsqueeze(0)
+        search = self.preprocessor.process(x_patch_arr, x_amask_arr)
+        with torch.no_grad():
+            x_dict = search
+        return self.z_dict1.tensors, x_dict.tensors, seqs_out
 
 def get_tracker_class():
     return ARTrackSeq
